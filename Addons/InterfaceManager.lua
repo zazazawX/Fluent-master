@@ -67,6 +67,12 @@ local InterfaceManager = {} do
         
         Library:SetLanguage(Settings.Language or "en")
         Library:SetCompactMode(Settings.CompactMode or false)
+        if Settings.AccentColor then
+            local success, color = pcall(Color3.fromHex, Settings.AccentColor)
+            if success then
+                Library:SetAccentColor(color)
+            end
+        end
 
 		local section = tab:AddSection("InterfaceSection")
 
@@ -83,6 +89,25 @@ local InterfaceManager = {} do
 		})
 
         InterfaceTheme:SetValue(Settings.Theme)
+
+		local DefaultAccent = Color3.fromRGB(96, 205, 255)
+		if Settings.AccentColor then
+			local success, color = pcall(Color3.fromHex, Settings.AccentColor)
+			if success then
+				DefaultAccent = color
+			end
+		end
+
+		local AccentColorpicker = section:AddColorpicker("AccentColorpicker", {
+			Title = "AccentColor",
+			Description = "AccentColorDesc",
+			Default = DefaultAccent,
+			Callback = function(Value)
+				Library:SetAccentColor(Value)
+				Settings.AccentColor = Value:ToHex()
+				InterfaceManager:SaveSettings()
+			end
+		})
 	
 		if Library.UseAcrylic then
 			section:AddToggle("AcrylicToggle", {

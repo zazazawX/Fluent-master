@@ -326,6 +326,7 @@ end
 
 Library.Language = "en"
 Library.CompactMode = false
+Library.AccentColor = nil
 
 Library.Translations = {
 	th = {
@@ -340,6 +341,8 @@ Library.Translations = {
 		["Acrylic"] = "เอฟเฟกต์เบลอหลัง (Acrylic)",
 		["Transparency"] = "เปิดเอฟเฟกต์โปร่งแสง",
 		["MinimizeBind"] = "ปุ่มซ่อนหน้าต่าง",
+		["AccentColor"] = "สีไฮไลต์หลัก",
+		["AccentColorDesc"] = "ปรับแต่งสีปุ่ม สวิตช์ และขีดเส้นเน้นของธีม",
 		["AutoloadDesc"] = "โหลดอัตโนมัติในปัจจุบัน: %s",
 		["ThemeDesc"] = "เปลี่ยนสไตล์สีสันของหน้าต่างหลัก",
 		["AcrylicDesc"] = "การเบลอพื้นหลังต้องการระดับกราฟิก 8 ขึ้นไป",
@@ -376,6 +379,8 @@ Library.Translations = {
 		["Acrylic"] = "Acrylic",
 		["Transparency"] = "Transparency",
 		["MinimizeBind"] = "Minimize Bind",
+		["AccentColor"] = "Accent Color",
+		["AccentColorDesc"] = "Customize the highlight color of controls.",
 		["AutoloadDesc"] = "Current autoload config: %s",
 		["ThemeDesc"] = "Changes the interface theme.",
 		["AcrylicDesc"] = "The blurred background requires graphic quality 8+",
@@ -428,6 +433,11 @@ end
 
 function Library:SetCompactMode(Value)
 	Library.CompactMode = Value
+	Creator.UpdateTheme()
+end
+
+function Library:SetAccentColor(Value)
+	Library.AccentColor = Value
 	Creator.UpdateTheme()
 end
 

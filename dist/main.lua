@@ -523,6 +523,7 @@ function Dialog:Create()
 		Closing = false,
 		Closed = false,
 		ButtonFrames = {},
+		Window = self.Window,
 	}
 
 	NewDialog.TintFrame = New("TextButton", {

@@ -92,7 +92,7 @@ local KeySystem = {} do
 			end
 			return false
 		end
-	end
+	}
 
 	function KeySystem:CreateKeySystem(Config)
 		assert(self.Library, "KeySystem - Must set library first (KeySystem:SetLibrary(Fluent))")
@@ -502,7 +502,6 @@ local KeySystem = {} do
 						})
 					end
 				end
-			end
 		end)
 	end
 
@@ -548,6 +547,7 @@ local KeySystem = {} do
 		Input.Text = SavedKey
 		Verify(SavedKey)
 	end
+end
 end
 
 return KeySystem

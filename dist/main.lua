@@ -3,12 +3,20 @@
 local modules = {}
 local loaded = {}
 
+local function get_parent_path(path)
+    if path == "" then
+        return ""
+    end
+    local parent = path:match("^(.-)%.[^%.]+$")
+    return parent or ""
+end
+
 local function create_mock_script(path)
     local mock
     mock = setmetatable({}, {
         __index = function(self, key)
             if key == "Parent" then
-                return self
+                return create_mock_script(get_parent_path(path))
             end
             local newPath = path == "" and key or (path .. "." .. key)
             return create_mock_script(newPath)
@@ -19,7 +27,6 @@ local function create_mock_script(path)
     })
     return mock
 end
-local script = create_mock_script("")
 
 local function register(name, func)
     modules[name] = func
@@ -39,6 +46,7 @@ local function require(name)
 end
 
 register("Acrylic.AcrylicBlur", function()
+local script = create_mock_script("Acrylic.AcrylicBlur")
 local Creator = require("Creator")
 local createAcrylic = require("Acrylic.CreateAcrylic")
 local viewportPointToWorld, getOffset = unpack(require("Acrylic.Utils"))
@@ -163,6 +171,7 @@ end
 end)
 
 register("Acrylic.AcrylicPaint", function()
+local script = create_mock_script("Acrylic.AcrylicPaint")
 local Creator = require("Creator")
 local AcrylicBlur = require("Acrylic.AcrylicBlur")
 
@@ -286,6 +295,7 @@ end
 end)
 
 register("Acrylic.CreateAcrylic", function()
+local script = create_mock_script("Acrylic.CreateAcrylic")
 local Root = script.Parent.Parent
 local Creator = require("Creator")
 
@@ -315,6 +325,7 @@ return createAcrylic
 end)
 
 register("Acrylic", function()
+local script = create_mock_script("Acrylic")
 local Acrylic = {
 	AcrylicBlur = require(script.AcrylicBlur),
 	CreateAcrylic = require(script.CreateAcrylic),
@@ -370,6 +381,7 @@ return Acrylic
 end)
 
 register("Acrylic.Utils", function()
+local script = create_mock_script("Acrylic.Utils")
 local function map(value, inMin, inMax, outMin, outMax)
 	return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
 end
@@ -389,6 +401,7 @@ return { viewportPointToWorld, getOffset }
 end)
 
 register("Components.Assets", function()
+local script = create_mock_script("Components.Assets")
 return {
 	Close = "rbxassetid://9886659671",
 	Min = "rbxassetid://9886659276",
@@ -399,6 +412,7 @@ return {
 end)
 
 register("Components.Button", function()
+local script = create_mock_script("Components.Button")
 local Root = script.Parent.Parent
 local Creator = require("Creator")
 local New = Creator.New
@@ -482,6 +496,7 @@ end
 end)
 
 register("Components.Dialog", function()
+local script = create_mock_script("Components.Dialog")
 local Root = script.Parent.Parent
 local Creator = require("Creator")
 local GuiService = game:GetService("GuiService")
@@ -749,6 +764,7 @@ return Dialog
 end)
 
 register("Components.Element", function()
+local script = create_mock_script("Components.Element")
 local Root = script.Parent.Parent
 local Creator = require("Creator")
 local New = Creator.New
@@ -982,6 +998,7 @@ end
 end)
 
 register("Components.Notification", function()
+local script = create_mock_script("Components.Notification")
 local Root = script.Parent.Parent
 local Flipper = require(Root.Packages.Flipper)
 local Creator = require("Creator")
@@ -1330,6 +1347,7 @@ return Notification
 end)
 
 register("Components.Section", function()
+local script = create_mock_script("Components.Section")
 local Root = script.Parent.Parent
 local Creator = require("Creator")
 local Flipper = require(Root.Packages.Flipper)
@@ -1426,6 +1444,7 @@ end
 end)
 
 register("Components.Tab", function()
+local script = create_mock_script("Components.Tab")
 local Root = script.Parent.Parent
 local Flipper = require(Root.Packages.Flipper)
 local Creator = require("Creator")
@@ -1711,6 +1730,7 @@ return TabModule
 end)
 
 register("Components.Textbox", function()
+local script = create_mock_script("Components.Textbox")
 local TextService = game:GetService("TextService")
 local Root = script.Parent.Parent
 local Flipper = require(Root.Packages.Flipper)
@@ -1835,6 +1855,7 @@ end
 end)
 
 register("Components.TitleBar", function()
+local script = create_mock_script("Components.TitleBar")
 local Root = script.Parent.Parent
 local Assets = require("Components.Assets")
 local Creator = require("Creator")
@@ -1998,6 +2019,7 @@ end
 end)
 
 register("Components.Window", function()
+local script = create_mock_script("Components.Window")
 -- i will rewrite this someday
 local UserInputService = game:GetService("UserInputService")
 local GuiService = game:GetService("GuiService")
@@ -2951,6 +2973,7 @@ end
 end)
 
 register("Creator", function()
+local script = create_mock_script("Creator")
 local Root = script.Parent
 local Themes = require("Themes")
 local Flipper = require(Root.Packages.Flipper)
@@ -3218,6 +3241,7 @@ return Creator
 end)
 
 register("Elements.Button", function()
+local script = create_mock_script("Elements.Button")
 local Root = script.Parent.Parent
 local Creator = require("Creator")
 
@@ -3258,6 +3282,7 @@ return Element
 end)
 
 register("Elements.Colorpicker", function()
+local script = create_mock_script("Elements.Colorpicker")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
@@ -3811,6 +3836,7 @@ return Element
 end)
 
 register("Elements.CopyButton", function()
+local script = create_mock_script("Elements.CopyButton")
 local Root = script.Parent.Parent
 local Creator = require("Creator")
 local New = Creator.New
@@ -3867,6 +3893,7 @@ return Element
 end)
 
 register("Elements.Dropdown", function()
+local script = create_mock_script("Elements.Dropdown")
 local UserInputService = game:GetService("UserInputService")
 local GuiService = game:GetService("GuiService")
 local Camera = game:GetService("Workspace").CurrentCamera
@@ -4519,6 +4546,7 @@ return Element
 end)
 
 register("Elements.Image", function()
+local script = create_mock_script("Elements.Image")
 local Root = script.Parent.Parent
 local Components = Root.Components
 local Creator = require("Creator")
@@ -4561,6 +4589,7 @@ return ImageElement
 end)
 
 register("Elements", function()
+local script = create_mock_script("Elements")
 
 local Elements = {}
 local btn = require("Elements.Button")
@@ -4592,6 +4621,7 @@ return Elements
 end)
 
 register("Elements.Input", function()
+local script = create_mock_script("Elements.Input")
 local Root = script.Parent.Parent
 local Creator = require("Creator")
 
@@ -4681,6 +4711,7 @@ return Element
 end)
 
 register("Elements.Keybind", function()
+local script = create_mock_script("Elements.Keybind")
 local UserInputService = game:GetService("UserInputService")
 
 local Root = script.Parent.Parent
@@ -4909,6 +4940,7 @@ return Element
 end)
 
 register("Elements.Paragraph", function()
+local script = create_mock_script("Elements.Paragraph")
 local Root = script.Parent.Parent
 local Components = Root.Components
 local Flipper = require(Root.Packages.Flipper)
@@ -4935,6 +4967,7 @@ return Paragraph
 end)
 
 register("Elements.RangeSlider", function()
+local script = create_mock_script("Elements.RangeSlider")
 local UserInputService = game:GetService("UserInputService")
 local GuiService = game:GetService("GuiService")
 local Root = script.Parent.Parent
@@ -5216,6 +5249,7 @@ return Element
 end)
 
 register("Elements.Slider", function()
+local script = create_mock_script("Elements.Slider")
 local UserInputService = game:GetService("UserInputService")
 local GuiService = game:GetService("GuiService")
 local Root = script.Parent.Parent
@@ -5456,6 +5490,7 @@ return Element
 end)
 
 register("Elements.Toggle", function()
+local script = create_mock_script("Elements.Toggle")
 local Root = script.Parent.Parent
 local Creator = require("Creator")
 
@@ -5564,6 +5599,7 @@ return Element
 end)
 
 register("Icons", function()
+local script = create_mock_script("Icons")
 -- This file was @generated by Tarmac. It is not intended for manual editing.
 return {
 	assets = {
@@ -6391,6 +6427,7 @@ return {
 end)
 
 register("main", function()
+local script = create_mock_script("")
 local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
@@ -6675,6 +6712,7 @@ return Library
 end)
 
 register("Packages.Flipper.BaseMotor", function()
+local script = create_mock_script("Packages.Flipper.BaseMotor")
 local RunService = game:GetService("RunService")
 
 local Signal = require("Packages.Flipper.Signal")
@@ -6734,6 +6772,7 @@ return BaseMotor
 end)
 
 register("Packages.Flipper.BaseMotor.spec", function()
+local script = create_mock_script("Packages.Flipper.BaseMotor.spec")
 return function()
 	local RunService = game:GetService("RunService")
 
@@ -6777,6 +6816,7 @@ end
 end)
 
 register("Packages.Flipper.GroupMotor", function()
+local script = create_mock_script("Packages.Flipper.GroupMotor")
 local BaseMotor = require("Packages.Flipper.BaseMotor")
 local SingleMotor = require("Packages.Flipper.SingleMotor")
 
@@ -6891,6 +6931,7 @@ return GroupMotor
 end)
 
 register("Packages.Flipper.GroupMotor.spec", function()
+local script = create_mock_script("Packages.Flipper.GroupMotor.spec")
 return function()
 	local GroupMotor = require("Packages.Flipper.GroupMotor")
 
@@ -6978,6 +7019,7 @@ end
 end)
 
 register("Packages.Flipper", function()
+local script = create_mock_script("Packages.Flipper")
 local Flipper = {
 	SingleMotor = require(script.SingleMotor),
 	GroupMotor = require(script.GroupMotor),
@@ -6994,6 +7036,7 @@ return Flipper
 end)
 
 register("Packages.Flipper.Instant", function()
+local script = create_mock_script("Packages.Flipper.Instant")
 local Instant = {}
 Instant.__index = Instant
 
@@ -7015,6 +7058,7 @@ return Instant
 end)
 
 register("Packages.Flipper.Instant.spec", function()
+local script = create_mock_script("Packages.Flipper.Instant.spec")
 return function()
 	local Instant = require("Packages.Flipper.Instant")
 
@@ -7029,6 +7073,7 @@ end
 end)
 
 register("Packages.Flipper.isMotor", function()
+local script = create_mock_script("Packages.Flipper.isMotor")
 local function isMotor(value)
 	local motorType = tostring(value):match("^Motor%((.+)%)$")
 
@@ -7044,6 +7089,7 @@ return isMotor
 end)
 
 register("Packages.Flipper.isMotor.spec", function()
+local script = create_mock_script("Packages.Flipper.isMotor.spec")
 return function()
 	local isMotor = require("Packages.Flipper.isMotor")
 
@@ -7074,6 +7120,7 @@ end
 end)
 
 register("Packages.Flipper.Linear", function()
+local script = create_mock_script("Packages.Flipper.Linear")
 local Linear = {}
 Linear.__index = Linear
 
@@ -7114,6 +7161,7 @@ return Linear
 end)
 
 register("Packages.Flipper.Linear.spec", function()
+local script = create_mock_script("Packages.Flipper.Linear.spec")
 return function()
 	local SingleMotor = require("Packages.Flipper.SingleMotor")
 	local Linear = require("Packages.Flipper.Linear")
@@ -7175,6 +7223,7 @@ end
 end)
 
 register("Packages.Flipper.Signal", function()
+local script = create_mock_script("Packages.Flipper.Signal")
 local Connection = {}
 Connection.__index = Connection
 
@@ -7237,6 +7286,7 @@ return Signal
 end)
 
 register("Packages.Flipper.Signal.spec", function()
+local script = create_mock_script("Packages.Flipper.Signal.spec")
 return function()
 	local Signal = require("Packages.Flipper.Signal")
 
@@ -7290,6 +7340,7 @@ end
 end)
 
 register("Packages.Flipper.SingleMotor", function()
+local script = create_mock_script("Packages.Flipper.SingleMotor")
 local BaseMotor = require("Packages.Flipper.BaseMotor")
 
 local SingleMotor = setmetatable({}, BaseMotor)
@@ -7361,6 +7412,7 @@ return SingleMotor
 end)
 
 register("Packages.Flipper.SingleMotor.spec", function()
+local script = create_mock_script("Packages.Flipper.SingleMotor.spec")
 return function()
 	local SingleMotor = require("Packages.Flipper.SingleMotor")
 	local Instant = require("Packages.Flipper.Instant")
@@ -7410,6 +7462,7 @@ end
 end)
 
 register("Packages.Flipper.Spring", function()
+local script = create_mock_script("Packages.Flipper.Spring")
 local VELOCITY_THRESHOLD = 0.001
 local POSITION_THRESHOLD = 0.001
 
@@ -7521,6 +7574,7 @@ return Spring
 end)
 
 register("Packages.Flipper.Spring.spec", function()
+local script = create_mock_script("Packages.Flipper.Spring.spec")
 return function()
 	local SingleMotor = require("Packages.Flipper.SingleMotor")
 	local Spring = require("Packages.Flipper.Spring")
@@ -7560,6 +7614,7 @@ end
 end)
 
 register("Themes.Amethyst", function()
+local script = create_mock_script("Themes.Amethyst")
 return {
 	Name = "Amethyst",
 	Accent = Color3.fromRGB(97, 62, 167),
@@ -7611,6 +7666,7 @@ return {
 end)
 
 register("Themes.Aqua", function()
+local script = create_mock_script("Themes.Aqua")
 return {
 	Name = "Aqua",
 	Accent = Color3.fromRGB(60, 165, 165),
@@ -7662,6 +7718,7 @@ return {
 end)
 
 register("Themes.Dark", function()
+local script = create_mock_script("Themes.Dark")
 return {
 	Name = "Dark",
 	Accent = Color3.fromRGB(96, 205, 255),
@@ -7713,6 +7770,7 @@ return {
 end)
 
 register("Themes.Darker", function()
+local script = create_mock_script("Themes.Darker")
 return {
 	Name = "Darker",
 	Accent = Color3.fromRGB(72, 138, 182),
@@ -7747,6 +7805,7 @@ return {
 end)
 
 register("Themes", function()
+local script = create_mock_script("Themes")
 
 local Themes = {
 	Names = {
@@ -7771,6 +7830,7 @@ return Themes
 end)
 
 register("Themes.Light", function()
+local script = create_mock_script("Themes.Light")
 return {
 	Name = "Light",
 	Accent = Color3.fromRGB(0, 103, 192),
@@ -7822,6 +7882,7 @@ return {
 end)
 
 register("Themes.Rose", function()
+local script = create_mock_script("Themes.Rose")
 return {
 	Name = "Rose",
 	Accent = Color3.fromRGB(180, 55, 90),
@@ -7873,6 +7934,7 @@ return {
 end)
 
 register("ThemeValidator", function()
+local script = create_mock_script("ThemeValidator")
 --!strict
 
 export type ContrastIssue = {
@@ -7975,6 +8037,7 @@ return ThemeValidator
 end)
 
 register("Types", function()
+local script = create_mock_script("Types")
 --!strict
 
 export type ButtonConfig = {

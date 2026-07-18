@@ -124,12 +124,20 @@ let bundle = `
 local modules = {}
 local loaded = {}
 
+local function get_parent_path(path)
+    if path == "" then
+        return ""
+    end
+    local parent = path:match("^(.-)%.[^%.]+$")
+    return parent or ""
+end
+
 local function create_mock_script(path)
     local mock
     mock = setmetatable({}, {
         __index = function(self, key)
             if key == "Parent" then
-                return self
+                return create_mock_script(get_parent_path(path))
             end
             local newPath = path == "" and key or (path .. "." .. key)
             return create_mock_script(newPath)
@@ -140,7 +148,6 @@ local function create_mock_script(path)
     })
     return mock
 end
-local script = create_mock_script("")
 
 local function register(name, func)
     modules[name] = func
@@ -162,7 +169,8 @@ end
 
 for (const [name, code] of Object.entries(modules)) {
     const processedCode = processModule(name, code);
-    bundle += `\nregister("${name}", function()\n${processedCode}\nend)\n`;
+    const scriptPath = name === 'main' ? '' : name;
+    bundle += `\nregister("${name}", function()\nlocal script = create_mock_script("${scriptPath}")\n${processedCode}\nend)\n`;
 }
 
 bundle += `\nreturn require("main")\n`;

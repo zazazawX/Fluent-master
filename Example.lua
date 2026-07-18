@@ -2,12 +2,15 @@ local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/zazaza
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/zazazawX/Fluent-master/main/Addons/SaveManager.lua"))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/zazazawX/Fluent-master/main/Addons/InterfaceManager.lua"))()
 
-local Window = Fluent:CreateWindow({
-    Title = "Fluent " .. Fluent.Version,
-    SubTitle = "by dawid",
-    TabWidth = 160,
-    Size = UDim2.fromOffset(580, 460),
-    Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
+local EnableKeySystem = false -- Set to true to test the advanced Key System!
+
+local function StartScript()
+    local Window = Fluent:CreateWindow({
+        Title = "Fluent " .. Fluent.Version,
+        SubTitle = "by dawid",
+        TabWidth = 160,
+        Size = UDim2.fromOffset(580, 460),
+        Acrylic = true, -- The blur may be detectable, setting this to false disables blur entirely
     Theme = "Dark",
     MinimizeKey = Enum.KeyCode.LeftControl -- Used when theres no MinimizeKeybind
 })
@@ -281,14 +284,50 @@ InterfaceManager:BuildInterfaceSection(Tabs.Settings)
 SaveManager:BuildConfigSection(Tabs.Settings)
 
 
-Window:SelectTab(1)
+    Window:SelectTab(1)
 
-Fluent:Notify({
-    Title = "Fluent",
-    Content = "The script has been loaded.",
-    Duration = 8
-})
+    Fluent:Notify({
+        Title = "Fluent",
+        Content = "The script has been loaded.",
+        Duration = 8
+    })
 
--- You can use the SaveManager:LoadAutoloadConfig() to load a config
--- which has been marked to be one that auto loads!
-SaveManager:LoadAutoloadConfig()
+    -- You can use the SaveManager:LoadAutoloadConfig() to load a config
+    -- which has been marked to be one that auto loads!
+    SaveManager:LoadAutoloadConfig()
+end
+
+if EnableKeySystem then
+    Fluent:CreateKeySystem({
+        Title = "Fluent Key System",
+        SubTitle = "Verification Required",
+        GetKeyLink = "https://linkvertise.com/example",
+        Discord = "https://discord.gg/example",
+        SaveKey = true, -- Auto-saves the key to a file
+        SavePath = "fluent-key-demo.txt", -- File name
+        BruteForceProtection = true,
+        MaxAttempts = 5,
+        LockoutDuration = 60,
+        
+        -- Option A: Simple hardcoded key
+        Key = "secret-demo-key",
+        
+        -- Option B: Array of hardcoded keys
+        -- Keys = {"key1", "key2"},
+        
+        -- Option C: Custom verification callback (ideal for custom APIs)
+        -- Callback = function(Key)
+        --     return Key == "secret-demo-key"
+        -- end,
+        
+        -- Option D: Preset integration (Luaguard, PandaAuth, Keyguard)
+        -- Preset = "Luaguard",
+        -- PresetConfig = { Project = "MyProject" },
+        
+        OnVerified = function()
+            StartScript()
+        end
+    })
+else
+    StartScript()
+end

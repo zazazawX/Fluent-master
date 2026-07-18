@@ -90,9 +90,9 @@ return Themes
 // Helper to resolve requires inside a module file
 function processModule(name, code) {
     // 1. require(Root.X) -> require("X")
-    code = code.replace(/require\(\s*Root\.([%w_]+)\s*\)/g, 'require("$1")');
+    code = code.replace(/require\(\s*Root\.([a-zA-Z0-9_]+)\s*\)/g, 'require("$1")');
     // 2. require(Components.X) -> require("Components.$1")
-    code = code.replace(/require\(\s*Components\.([%w_]+)\s*\)/g, 'require("Components.$1")');
+    code = code.replace(/require\(\s*Components\.([a-zA-Z0-9_]+)\s*\)/g, 'require("Components.$1")');
     // 3. require(script.Parent.Parent.Creator) -> require("Creator")
     code = code.replace(/require\(\s*script\.Parent\.Parent\.Creator\s*\)/g, 'require("Creator")');
     // 4. require(script.Parent.Parent.Packages.Flipper) -> require("Packages.Flipper")
@@ -108,11 +108,11 @@ function processModule(name, code) {
     
     // Flipper sub-requires
     if (name.startsWith('Packages.Flipper')) {
-        code = code.replace(/require\(\s*script\.Parent\.([%w_-]+)\s*\)/g, 'require("Packages.Flipper.$1")');
+        code = code.replace(/require\(\s*script\.Parent\.([a-zA-Z0-9_-]+)\s*\)/g, 'require("Packages.Flipper.$1")');
     }
     // Acrylic sub-requires
     if (name.startsWith('Acrylic')) {
-        code = code.replace(/require\(\s*script\.Parent\.([%w_-]+)\s*\)/g, 'require("Acrylic.$1")');
+        code = code.replace(/require\(\s*script\.Parent\.([a-zA-Z0-9_-]+)\s*\)/g, 'require("Acrylic.$1")');
     }
 
     return code;

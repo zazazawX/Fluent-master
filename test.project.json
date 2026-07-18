@@ -1,0 +1,23 @@
+{
+  "name": "FluentComponentTests",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Fluent": {
+        "$path": "src"
+      },
+      "Tests": {
+        "PerformanceStressTest": {
+          "$path": "tests/PerformanceStressTest.lua"
+        }
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "ComponentTest": {
+          "$path": "tests/ComponentTest.client.lua"
+        }
+      }
+    }
+  }
+}

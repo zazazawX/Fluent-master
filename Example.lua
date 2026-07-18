@@ -326,6 +326,23 @@ if EnableKeySystem then
         -- Option D: Preset integration (Luaguard, PandaAuth, Keyguard)
         -- Preset = "Luaguard",
         -- PresetConfig = { Project = "MyProject" },
+
+		-- Option E: Try multiple API providers in order
+		-- Providers = {
+		--     {
+		--         URL = "https://api.example.com/verify?key={key}",
+		--         Method = "GET",
+		--         SuccessField = "data.valid"
+		--     },
+		--     {
+		--         URL = "https://backup.example.com/verify",
+		--         Method = "POST",
+		--         Headers = { ["Content-Type"] = "application/json" },
+		--         Body = { project = "MyProject" },
+		--         KeyField = "licenseKey",
+		--         SuccessField = "success"
+		--     }
+		-- },
         
         OnVerified = function()
             StartScript()

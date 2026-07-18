@@ -194,15 +194,15 @@ local KeySystem = {} do
 		})
 
 		local KeySystemFrame = New("Frame", {
-			Size = UDim2.new(0.9, 0, 0, 250),
+			Size = UDim2.new(0.9, 0, 0, 280),
 			Position = UDim2.fromScale(0.5, 0.5),
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundTransparency = 1,
 			Parent = Overlay,
 		})
 		New("UISizeConstraint", {
-			MinSize = Vector2.new(300, 240),
-			MaxSize = Vector2.new(420, 250),
+			MinSize = Vector2.new(300, 270),
+			MaxSize = Vector2.new(400, 280),
 			Parent = KeySystemFrame,
 		})
 		New("ImageLabel", {
@@ -236,13 +236,13 @@ local KeySystem = {} do
 			Parent = KeySystemPaint.Frame,
 		})
 
-		local TitleBarLine = New("Frame", { Size = UDim2.new(1, 0, 0, 1), Position = UDim2.fromOffset(0, 42), BackgroundTransparency = 0.5, ThemeTag = { BackgroundColor3 = "TitleBarLine" }, Parent = KeySystemPaint.Frame })
+		local ButtonHolder = New("Frame", { Size = UDim2.new(1, 0, 0, 76), Position = UDim2.new(0, 0, 1, -76), ThemeTag = { BackgroundColor3 = "DialogHolder" }, Parent = KeySystemPaint.Frame }, { New("Frame", { Size = UDim2.new(1, 0, 0, 1), ThemeTag = { BackgroundColor3 = "DialogHolderLine" } }) })
 		local Title = New("TextLabel", {
-			Size = UDim2.new(0.5, -16, 0, 42),
-			Position = UDim2.fromOffset(16, 0),
+			Size = UDim2.new(1, -64, 0, 26),
+			Position = UDim2.fromOffset(20, 22),
 			Text = Config.Title or "Key System",
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
-			TextSize = 12,
+			TextSize = 22,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			BackgroundTransparency = 1,
 			ThemeTag = { TextColor3 = "Text" },
@@ -250,11 +250,11 @@ local KeySystem = {} do
 		})
 
 		local SubTitle = New("TextLabel", {
-			Size = UDim2.new(0.5, -52, 0, 42),
-			Position = UDim2.new(0.5, -12, 0, 0),
+			Size = UDim2.new(1, -64, 0, 20),
+			Position = UDim2.fromOffset(20, 52),
 			Text = Config.SubTitle or "Verification Required",
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
-			TextSize = 12,
+			TextSize = 13,
 			TextTransparency = 0.4,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			BackgroundTransparency = 1,
@@ -264,7 +264,8 @@ local KeySystem = {} do
 
 		local TextboxFrame = New("Frame", {
 			Size = UDim2.new(1, -48, 0, 46),
-			Position = UDim2.fromOffset(24, 64),
+			Size = UDim2.new(1, -40, 0, 38),
+			Position = UDim2.fromOffset(20, 84),
 			BackgroundTransparency = 0.15,
 			ThemeTag = { BackgroundColor3 = "DialogInput" },
 			Parent = KeySystemPaint.Frame,
@@ -285,21 +286,21 @@ local KeySystem = {} do
 			PlaceholderText = "Enter key here...",
 			PlaceholderColor3 = Color3.fromRGB(120, 120, 120),
 			TextTransparency = 1,
-			TextSize = 13,
+			TextSize = 14,
 			ClearTextOnFocus = false,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
 			ThemeTag = { TextColor3 = "Text", PlaceholderColor3 = "SubText" },
 			Parent = TextboxFrame,
 		})
-		local MaskLabel = New("TextLabel", { Size = UDim2.new(1, -54, 1, 0), Position = UDim2.fromOffset(10, 0), BackgroundTransparency = 1, Text = "", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), ThemeTag = { TextColor3 = "Text" }, Parent = TextboxFrame })
-		local RevealButton = New("TextButton", { Size = UDim2.fromOffset(42, 42), Position = UDim2.new(1, -44, 0, 2), BackgroundTransparency = 1, Text = "SHOW", TextSize = 9, ThemeTag = { TextColor3 = "SubText" }, Parent = TextboxFrame })
-		local StatusLabel = New("TextLabel", { Size = UDim2.new(1, -48, 0, 18), Position = UDim2.fromOffset(24, 113), BackgroundTransparency = 1, Text = "", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, ThemeTag = { TextColor3 = "SubText" }, Parent = KeySystemPaint.Frame })
-		local VerifyButton = New("TextButton", { Size = UDim2.new(1, -48, 0, 36), Position = UDim2.fromOffset(24, 137), BackgroundTransparency = 0.1, Text = "Verify Key", TextSize = 13, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), ThemeTag = { BackgroundColor3 = "Accent", TextColor3 = "AcrylicMain" }, Parent = KeySystemPaint.Frame }, { New("UICorner", { CornerRadius = UDim.new(0, 6) }) })
-		local Spinner = New("TextLabel", { Size = UDim2.fromOffset(18, 18), Position = UDim2.new(0.5, -62, 0, 146), BackgroundTransparency = 1, Text = "|", TextSize = 15, Visible = false, ThemeTag = { TextColor3 = "AcrylicMain" }, Parent = KeySystemPaint.Frame })
-		local GetKeyButton = New("TextButton", { Size = UDim2.new(0.5, -24, 0, 24), Position = UDim2.fromOffset(24, 183), BackgroundTransparency = 1, Text = "Get Key", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, ThemeTag = { TextColor3 = "Accent" }, Parent = KeySystemPaint.Frame })
-		local DiscordButton = Config.Discord and New("TextButton", { Size = UDim2.new(0.5, -24, 0, 24), Position = UDim2.new(0.5, 0, 0, 183), BackgroundTransparency = 1, Text = "Discord", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, ThemeTag = { TextColor3 = "SubText" }, Parent = KeySystemPaint.Frame }) or nil
-		local CloseButton = New("TextButton", { Size = UDim2.fromOffset(34, 34), Position = UDim2.new(1, -38, 0, 4), BackgroundTransparency = 1, Text = "X", TextSize = 12, ThemeTag = { TextColor3 = "Text", BackgroundColor3 = "Text" }, Parent = KeySystemPaint.Frame }, { New("UICorner", { CornerRadius = UDim.new(0, 7) }) })
+		local MaskLabel = New("TextLabel", { Size = UDim2.new(1, -54, 1, 0), Position = UDim2.fromOffset(10, 0), BackgroundTransparency = 1, Text = "", TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), ThemeTag = { TextColor3 = "Text" }, Parent = TextboxFrame })
+		local RevealButton = New("TextButton", { Size = UDim2.fromOffset(42, 34), Position = UDim2.new(1, -44, 0, 2), BackgroundTransparency = 1, Text = "SHOW", TextSize = 10, ThemeTag = { TextColor3 = "SubText" }, Parent = TextboxFrame })
+		local StatusLabel = New("TextLabel", { Size = UDim2.new(1, -40, 0, 18), Position = UDim2.fromOffset(20, 127), BackgroundTransparency = 1, Text = "", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, ThemeTag = { TextColor3 = "SubText" }, Parent = KeySystemPaint.Frame })
+		local GetKeyButton = New("TextButton", { Size = UDim2.new(0.5, -20, 0, 26), Position = UDim2.fromOffset(20, 153), BackgroundTransparency = 1, Text = "Get Key", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, ThemeTag = { TextColor3 = "Accent" }, Parent = KeySystemPaint.Frame })
+		local DiscordButton = Config.Discord and New("TextButton", { Size = UDim2.new(0.5, -20, 0, 26), Position = UDim2.new(0.5, 0, 0, 153), BackgroundTransparency = 1, Text = "Discord", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Right, ThemeTag = { TextColor3 = "SubText" }, Parent = KeySystemPaint.Frame }) or nil
+		local VerifyButton = New("TextButton", { Size = UDim2.new(1, -40, 0, 36), Position = UDim2.fromOffset(20, 20), BackgroundTransparency = 0, Text = "Verify Key", TextSize = 14, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "Text" }, Parent = ButtonHolder }, { New("UICorner", { CornerRadius = UDim.new(0, 4) }), New("UIStroke", { ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Transparency = 0.65, ThemeTag = { Color = "DialogButtonBorder" } }) })
+		local Spinner = New("TextLabel", { Size = UDim2.fromOffset(18, 18), Position = UDim2.new(0.5, -62, 0, 29), BackgroundTransparency = 1, Text = "|", TextSize = 15, Visible = false, ThemeTag = { TextColor3 = "Text" }, Parent = ButtonHolder })
+		local CloseButton = New("TextButton", { Size = UDim2.fromOffset(34, 34), Position = UDim2.new(1, -40, 0, 8), BackgroundTransparency = 1, Text = "X", TextSize = 13, ThemeTag = { TextColor3 = "Text", BackgroundColor3 = "Text" }, Parent = KeySystemPaint.Frame }, { New("UICorner", { CornerRadius = UDim.new(0, 7) }) })
 		local ReopenButton = New("TextButton", { Size = UDim2.fromOffset(54, 34), Position = UDim2.new(1, -70, 1, -50), BackgroundTransparency = 0.08, Text = "KEY", TextSize = 11, Visible = false, ThemeTag = { BackgroundColor3 = "AcrylicMain", TextColor3 = "Text" }, Parent = KeySystemGui }, { New("UICorner", { CornerRadius = UDim.new(0, 7) }), New("UIStroke", { Transparency = 0.5, ThemeTag = { Color = "TitleBarLine" } }) })
 
 		local TweenService = game:GetService("TweenService")
@@ -381,8 +382,8 @@ local KeySystem = {} do
 				Attempts = 0
 				SetInputEnabled(true)
 				VerifyButton.Text = "Verify Key"
-				VerifyButton.BackgroundColor3 = Creator.GetThemeProperty("Accent") or Color3.fromRGB(96, 205, 255)
-				VerifyButton.TextColor3 = Creator.GetThemeProperty("AcrylicMain") or Color3.fromRGB(40, 40, 40)
+				VerifyButton.BackgroundColor3 = Creator.GetThemeProperty("DialogButton") or Color3.fromRGB(45, 45, 45)
+				VerifyButton.TextColor3 = Creator.GetThemeProperty("Text") or Color3.fromRGB(240, 240, 240)
 				StatusLabel.Text = ""
 			end)
 		end
@@ -495,8 +496,8 @@ local KeySystem = {} do
 					IsVerifying = false
 					SetInputEnabled(true)
 					VerifyButton.Text = "Verify Key"
-					VerifyButton.BackgroundColor3 = Creator.GetThemeProperty("Accent") or Color3.fromRGB(96, 205, 255)
-					VerifyButton.TextColor3 = Creator.GetThemeProperty("AcrylicMain") or Color3.fromRGB(40, 40, 40)
+					VerifyButton.BackgroundColor3 = Creator.GetThemeProperty("DialogButton") or Color3.fromRGB(45, 45, 45)
+					VerifyButton.TextColor3 = Creator.GetThemeProperty("Text") or Color3.fromRGB(240, 240, 240)
 					StatusLabel.Text = "Invalid key. Please try again."
 					StatusLabel.TextColor3 = Color3.fromRGB(245, 115, 115)
 

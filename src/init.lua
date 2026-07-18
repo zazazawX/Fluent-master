@@ -510,6 +510,12 @@ end
 function Library:CreateKeySystem(Config)
 	assert(Config.OnVerified, "KeySystem - Missing OnVerified callback")
 
+	local UseAcrylic = Config.Acrylic ~= false
+	if UseAcrylic then
+		Library.UseAcrylic = true
+		Acrylic.init()
+	end
+
 	local KeySystemGui = New("ScreenGui", {
 		Name = "FluentKeySystem",
 		IgnoreGuiInset = false,
@@ -529,7 +535,9 @@ function Library:CreateKeySystem(Config)
 	})
 
 	local KeySystemPaint = Acrylic.AcrylicPaint()
-	KeySystemPaint.AddParent(KeySystemFrame)
+	if KeySystemPaint.AddParent then
+		KeySystemPaint.AddParent(KeySystemFrame)
+	end
 
 	New("UICorner", {
 		CornerRadius = UDim.new(0, 8),

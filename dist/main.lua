@@ -2190,6 +2190,7 @@ return function(Config)
 	local DragInteraction = {}
 	local ResizeInteraction = {}
 	local MinimizeNotif = false
+	local ApplyResponsiveLayout
 
 	Window.AcrylicPaint = Acrylic.AcrylicPaint()
 
@@ -2396,7 +2397,7 @@ return function(Config)
 		Window.AcrylicPaint.AddParent(Window.Root)
 	end
 
-	local ApplyResponsiveLayout = function() end
+	ApplyResponsiveLayout = function() end
 
 	local SizeMotor = Flipper.GroupMotor.new({
 		X = Window.Size.X.Offset,
@@ -7223,6 +7224,10 @@ function Library:ToggleTransparency(Value)
 			Window.AcrylicPaint.Frame.Background.BackgroundTransparency = Value and 0.35 or 0
 		end
 	end
+end
+
+function Library:Notify(Config)
+	return NotificationModule:New(Config)
 end
 
 function Library:CreateKeySystem(Config)

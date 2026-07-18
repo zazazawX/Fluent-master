@@ -1,6 +1,6 @@
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/zazazawX/Fluent-master/main/dist/main.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/zazazawX/Fluent-master/main/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/zazazawX/Fluent-master/main/Addons/InterfaceManager.lua"))()
 
 local Window = Fluent:CreateWindow({
     Title = "Fluent " .. Fluent.Version,
@@ -35,6 +35,13 @@ do
         Content = "This is a paragraph.\nSecond line!"
     })
 
+    Tabs.Main:AddImage({
+        Title = "Image Element",
+        Description = "This is a simple image element",
+        Image = "rbxassetid://10709791437",
+        Size = UDim2.fromOffset(64, 64)
+    })
+
 
 
     Tabs.Main:AddButton({
@@ -59,6 +66,15 @@ do
                     }
                 }
             })
+        end
+    })
+
+    Tabs.Main:AddCopyButton({
+        Title = "Copy Button",
+        Description = "Copies the defined text to clipboard",
+        Value = "Hello from Fluent!",
+        Callback = function(Value)
+            print("Copied text:", Value)
         end
     })
 
@@ -91,6 +107,24 @@ do
     end)
 
     Slider:SetValue(3)
+
+    local RangeSlider = Tabs.Main:AddRangeSlider("RangeSlider", {
+        Title = "Range Slider",
+        Description = "This is a range slider",
+        Min = 0,
+        Max = 10,
+        Default = { 3, 7 },
+        Rounding = 1,
+        Callback = function(Value)
+            print("RangeSlider was changed:", Value.Min, Value.Max)
+        end
+    })
+
+    RangeSlider:OnChanged(function(Value)
+        print("RangeSlider changed:", Value.Min, Value.Max)
+    end)
+
+    RangeSlider:SetValue(4, 8)
 
 
 

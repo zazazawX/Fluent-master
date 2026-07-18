@@ -507,6 +507,10 @@ function Library:ToggleTransparency(Value)
 	end
 end
 
+function Library:Notify(Config)
+	return NotificationModule:New(Config)
+end
+
 function Library:CreateKeySystem(Config)
 	assert(Config.OnVerified, "KeySystem - Missing OnVerified callback")
 

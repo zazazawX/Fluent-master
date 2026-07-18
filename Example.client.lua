@@ -20,6 +20,13 @@ do
         Content = "This is a paragraph.\nSecond line!"
     })
 
+    Tabs.Main:AddImage({
+        Title = "Image Element",
+        Description = "This is a simple image element",
+        Image = "rbxassetid://10709791437",
+        Size = UDim2.fromOffset(64, 64)
+    })
+
     Tabs.Main:AddButton({
         Title = "Button",
         Description = "Very important button",
@@ -50,6 +57,15 @@ do
         end
     })
 
+    Tabs.Main:AddCopyButton({
+        Title = "Copy Button",
+        Description = "Copies the defined text to clipboard",
+        Value = "Hello from Fluent!",
+        Callback = function(Value)
+            print("Copied text:", Value)
+        end
+    })
+
     local Toggle = Tabs.Main:AddToggle("Toggle", {Title = "Toggle", Default = false })
     
     local Slider = Tabs.Main:AddSlider("Slider", {
@@ -59,6 +75,18 @@ do
         Min = 0.0,
         Max = 15.5,
         Rounding = 1
+    })
+
+    local RangeSlider = Tabs.Main:AddRangeSlider("RangeSlider", {
+        Title = "Range Slider",
+        Description = "This is a range slider",
+        Min = 0,
+        Max = 15,
+        Default = {3, 7},
+        Rounding = 1,
+        Callback = function(Value)
+            print("RangeSlider was changed:", Value.Min, Value.Max)
+        end
     })
 
 
@@ -124,6 +152,12 @@ do
     Slider:OnChanged(function(Value)
         print("Slider changed:", Value)
     end)
+
+    RangeSlider:OnChanged(function(Value)
+        print("RangeSlider changed:", Value.Min, Value.Max)
+    end)
+
+    RangeSlider:SetValue(4, 8)
 
     Dropdown:OnChanged(function(Value)
         print("Dropdown changed:", Value)

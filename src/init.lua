@@ -513,9 +513,6 @@ function Library:Notify(Config)
 	return NotificationModule:New(Config)
 end
 
-
-end
-
 if getgenv then
 	getgenv().Fluent = Library
 	getgenv().CoreX = Library

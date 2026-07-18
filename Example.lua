@@ -5,7 +5,7 @@ local KeySystem = loadstring(game:HttpGet("https://raw.githubusercontent.com/zaz
 
 KeySystem:SetLibrary(Fluent)
 
-local EnableKeySystem = false -- Set to true to test the advanced Key System!
+local EnableKeySystem = true -- Set to true to test the advanced Key System!
 
 local function StartScript()
     local Window = Fluent:CreateWindow({

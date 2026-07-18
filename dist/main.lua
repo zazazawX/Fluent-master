@@ -2868,7 +2868,9 @@ return function(Config)
 		ResizeStartFrame.Size = UDim2.fromOffset(ResizeHandleSize, ResizeHandleSize)
 		ResizeStartFrame.Position = UDim2.new(1, -ResizeHandleSize, 1, -ResizeHandleSize)
 		ResizeStartFrame.Visible = not Window.Maximized
-		TabModule:SetCompact(Compact or Window.SidebarCollapsed == true)
+		if TabModule then
+			TabModule:SetCompact(Compact or Window.SidebarCollapsed == true)
+		end
 	end
 
 	local function UpdateViewport()

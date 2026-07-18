@@ -16,6 +16,7 @@ return function(Title, Desc, Parent, Hover, TooltipText)
 		BackgroundTransparency = 1,
 		ThemeTag = {
 			TextColor3 = "Text",
+			TextSize = "ElementTitleSize",
 		},
 	})
 
@@ -32,7 +33,17 @@ return function(Title, Desc, Parent, Hover, TooltipText)
 		Size = UDim2.new(1, 0, 0, 14),
 		ThemeTag = {
 			TextColor3 = "SubText",
+			TextSize = "ElementDescSize",
 		},
+	})
+
+	Element.Padding = New("UIPadding", {
+		PaddingBottom = UDim.new(0, 13),
+		PaddingTop = UDim.new(0, 13),
+		ThemeTag = {
+			PaddingBottom = "ElementPadding",
+			PaddingTop = "ElementPadding",
+		}
 	})
 
 	Element.LabelHolder = New("Frame", {
@@ -46,10 +57,7 @@ return function(Title, Desc, Parent, Hover, TooltipText)
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			VerticalAlignment = Enum.VerticalAlignment.Center,
 		}),
-		New("UIPadding", {
-			PaddingBottom = UDim.new(0, 13),
-			PaddingTop = UDim.new(0, 13),
-		}),
+		Element.Padding,
 		Element.TitleLabel,
 		Element.DescLabel,
 	})

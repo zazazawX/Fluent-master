@@ -7,7 +7,9 @@ local InterfaceManager = {} do
         Acrylic = true,
         Transparency = true,
         ReducedMotion = false,
-        MenuKeybind = "LeftControl"
+        MenuKeybind = "LeftControl",
+        CompactMode = false,
+        Language = "en"
     }
 
     function InterfaceManager:SetFolder(folder)
@@ -62,12 +64,15 @@ local InterfaceManager = {} do
         local Settings = InterfaceManager.Settings
 
         InterfaceManager:LoadSettings()
+        
+        Library:SetLanguage(Settings.Language or "en")
+        Library:SetCompactMode(Settings.CompactMode or false)
 
-		local section = tab:AddSection("Interface")
+		local section = tab:AddSection(Library:Translate("InterfaceSection"))
 
 		local InterfaceTheme = section:AddDropdown("InterfaceTheme", {
-			Title = "Theme",
-			Description = "Changes the interface theme.",
+			Title = Library:Translate("Theme"),
+			Description = Library:Translate("ThemeDesc"),
 			Values = Library.Themes,
 			Default = Settings.Theme,
 			Callback = function(Value)
@@ -81,8 +86,8 @@ local InterfaceManager = {} do
 	
 		if Library.UseAcrylic then
 			section:AddToggle("AcrylicToggle", {
-				Title = "Acrylic",
-				Description = "The blurred background requires graphic quality 8+",
+				Title = Library:Translate("Acrylic"),
+				Description = Library:Translate("AcrylicDesc"),
 				Default = Settings.Acrylic,
 				Callback = function(Value)
 					Library:ToggleAcrylic(Value)
@@ -93,8 +98,8 @@ local InterfaceManager = {} do
 		end
 	
 		section:AddToggle("TransparentToggle", {
-			Title = "Transparency",
-			Description = "Makes the interface transparent.",
+			Title = Library:Translate("Transparency"),
+			Description = Library:Translate("TransparencyDesc"),
 			Default = Settings.Transparency,
 			Callback = function(Value)
 				Library:ToggleTransparency(Value)
@@ -103,9 +108,20 @@ local InterfaceManager = {} do
 			end
 		})
 
+		section:AddToggle("CompactModeToggle", {
+			Title = Library:Translate("CompactMode"),
+			Description = Library:Translate("CompactModeDesc"),
+			Default = Settings.CompactMode,
+			Callback = function(Value)
+				Library:SetCompactMode(Value)
+				Settings.CompactMode = Value
+				InterfaceManager:SaveSettings()
+			end
+		})
+
 		section:AddToggle("ReducedMotionToggle", {
-			Title = "Reduced motion",
-			Description = "Disables non-essential interface animations.",
+			Title = Library:Translate("ReducedMotion"),
+			Description = Library:Translate("ReducedMotionDesc"),
 			Default = Settings.ReducedMotion,
 			Callback = function(Value)
 				Library:SetReducedMotion(Value)
@@ -113,8 +129,21 @@ local InterfaceManager = {} do
 				InterfaceManager:SaveSettings()
 			end
 		})
+
+		local LanguageDropdown = section:AddDropdown("InterfaceLanguage", {
+			Title = Library:Translate("Language"),
+			Description = Library:Translate("LanguageDesc"),
+			Values = {"en", "th"},
+			Default = Settings.Language or "en",
+			Callback = function(Value)
+				Library:SetLanguage(Value)
+				Settings.Language = Value
+				InterfaceManager:SaveSettings()
+			end
+		})
+		LanguageDropdown:SetValue(Settings.Language or "en")
 	
-		local MenuKeybind = section:AddKeybind("MenuKeybind", { Title = "Minimize Bind", Default = Settings.MenuKeybind })
+		local MenuKeybind = section:AddKeybind("MenuKeybind", { Title = Library:Translate("MinimizeBind"), Default = Settings.MenuKeybind })
 		MenuKeybind:OnChanged(function()
 			Settings.MenuKeybind = MenuKeybind.Value
             InterfaceManager:SaveSettings()

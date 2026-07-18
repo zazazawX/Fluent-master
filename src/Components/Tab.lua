@@ -129,6 +129,7 @@ function TabModule:New(Title, Icon, Parent)
 		Parent = Parent,
 		ThemeTag = {
 			BackgroundColor3 = "Tab",
+			Size = "TabFrameSize",
 		},
 	}, {
 		New("UICorner", {

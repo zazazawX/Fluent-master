@@ -122,13 +122,46 @@ function Creator.Disconnect()
 	for Idx = #Creator.Signals, 1, -1 do
 		local Connection = table.remove(Creator.Signals, Idx)
 		if Connection.Connected then
-			Connection:Disconnect()
+			pcall(function() Connection:Disconnect() end)
 		end
 	end
 	table.clear(Creator.SignalCleanups)
 end
 
+function Creator.ClearRegistry()
+	for Instance, Motors in next, Creator.TransparencyMotors do
+		if type(Motors) == "table" then
+			for Motor in next, Motors do
+				pcall(function() Motor:destroy() end)
+			end
+		end
+	end
+	
+	for Object, Data in next, Creator.Registry do
+		if Data.DestroyingConnection then
+			pcall(function() Data.DestroyingConnection:Disconnect() end)
+		end
+	end
+	
+	Creator.Disconnect()
+	
+	table.clear(Creator.Registry)
+	table.clear(Creator.TransparencyMotors)
+	table.clear(Creator.Signals)
+	table.clear(Creator.SignalCleanups)
+end
+
 function Creator.GetThemeProperty(Property)
+	if Property == "ElementPadding" then
+		return require(Root).CompactMode and UDim.new(0, 8) or UDim.new(0, 13)
+	elseif Property == "ElementTitleSize" then
+		return require(Root).CompactMode and 11 or 13
+	elseif Property == "ElementDescSize" then
+		return require(Root).CompactMode and 10 or 12
+	elseif Property == "TabFrameSize" then
+		return require(Root).CompactMode and UDim2.new(1, 0, 0, 28) or UDim2.new(1, 0, 0, 34)
+	end
+
 	if Themes[require(Root).Theme][Property] then
 		return Themes[require(Root).Theme][Property]
 	end

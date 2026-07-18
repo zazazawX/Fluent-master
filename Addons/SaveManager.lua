@@ -434,7 +434,7 @@ local SaveManager = {} do
 				self.Library:Notify({
 					Title = "Interface",
 					Content = "Config loader",
-					SubContent = "Failed to read autoload config: " .. readError,
+					SubContent = self.Library:Translate("AutoloadFail", readError),
 					Duration = 7
 				})
 			end
@@ -446,7 +446,7 @@ local SaveManager = {} do
 			return self.Library:Notify({
 				Title = "Interface",
 				Content = "Config loader",
-				SubContent = "Failed to load autoload config: " .. err,
+				SubContent = self.Library:Translate("LoadFail", err),
 				Duration = 7
 			})
 		end
@@ -454,7 +454,7 @@ local SaveManager = {} do
 		self.Library:Notify({
 			Title = "Interface",
 			Content = "Config loader",
-			SubContent = string.format("Auto loaded config %q", name),
+			SubContent = self.Library:Translate("AutoloadLoaded", name),
 			Duration = 7
 		})
 	end
@@ -462,13 +462,13 @@ local SaveManager = {} do
 	function SaveManager:BuildConfigSection(tab)
 		assert(self.Library, "Must set SaveManager.Library")
 
-		local section = tab:AddSection("Configuration")
+		local section = tab:AddSection(self.Library:Translate("ConfigSection"))
 
-		section:AddInput("SaveManager_ConfigName",    { Title = "Config name" })
-		section:AddDropdown("SaveManager_ConfigList", { Title = "Config list", Values = self:RefreshConfigList(), AllowNull = true })
+		section:AddInput("SaveManager_ConfigName",    { Title = self.Library:Translate("ConfigName") })
+		section:AddDropdown("SaveManager_ConfigList", { Title = self.Library:Translate("ConfigList"), Values = self:RefreshConfigList(), AllowNull = true })
 
 		section:AddButton({
-            Title = "Create config",
+            Title = self.Library:Translate("CreateConfig"),
             Callback = function()
                 local name = SaveManager.Options.SaveManager_ConfigName.Value
 
@@ -477,7 +477,7 @@ local SaveManager = {} do
                     return self.Library:Notify({
 						Title = "Interface",
 						Content = "Config loader",
-						SubContent = "Failed to save config: " .. result,
+						SubContent = self.Library:Translate("SaveFail", result),
 						Duration = 7
 					})
                 end
@@ -486,7 +486,7 @@ local SaveManager = {} do
 				self.Library:Notify({
 					Title = "Interface",
 					Content = "Config loader",
-					SubContent = string.format("Created config %q", name),
+					SubContent = self.Library:Translate("SaveSuccess", name),
 					Duration = 7
 				})
 
@@ -495,7 +495,7 @@ local SaveManager = {} do
             end
         })
 
-        section:AddButton({Title = "Load config", Callback = function()
+        section:AddButton({Title = self.Library:Translate("LoadConfig"), Callback = function()
 			local name = SaveManager.Options.SaveManager_ConfigList.Value
 
 			local success, result = self:Load(name)
@@ -503,7 +503,7 @@ local SaveManager = {} do
 				return self.Library:Notify({
 					Title = "Interface",
 					Content = "Config loader",
-					SubContent = "Failed to load config: " .. result,
+					SubContent = self.Library:Translate("LoadFail", result),
 					Duration = 7
 				})
 			end
@@ -512,12 +512,12 @@ local SaveManager = {} do
 			self.Library:Notify({
 				Title = "Interface",
 				Content = "Config loader",
-				SubContent = string.format("Loaded config %q", name),
+				SubContent = self.Library:Translate("LoadSuccess", name),
 				Duration = 7
 			})
 		end})
 
-		section:AddButton({Title = "Overwrite config", Callback = function()
+		section:AddButton({Title = self.Library:Translate("OverwriteConfig"), Callback = function()
 			local name = SaveManager.Options.SaveManager_ConfigList.Value
 
 			local success, result = self:Save(name)
@@ -525,7 +525,7 @@ local SaveManager = {} do
 				return self.Library:Notify({
 					Title = "Interface",
 					Content = "Config loader",
-					SubContent = "Failed to overwrite config: " .. result,
+					SubContent = self.Library:Translate("OverwriteFail", result),
 					Duration = 7
 				})
 			end
@@ -534,41 +534,41 @@ local SaveManager = {} do
 			self.Library:Notify({
 				Title = "Interface",
 				Content = "Config loader",
-				SubContent = string.format("Overwrote config %q", name),
+				SubContent = self.Library:Translate("OverwriteSuccess", name),
 				Duration = 7
 			})
 		end})
 
-		section:AddButton({Title = "Refresh list", Callback = function()
+		section:AddButton({Title = self.Library:Translate("RefreshList"), Callback = function()
 			SaveManager.Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
 			SaveManager.Options.SaveManager_ConfigList:SetValue(nil)
 		end})
 
 		local AutoloadButton
-		AutoloadButton = section:AddButton({Title = "Set as autoload", Description = "Current autoload config: none", Callback = function()
+		AutoloadButton = section:AddButton({Title = self.Library:Translate("SetAutoload"), Description = self.Library:Translate("AutoloadDesc", self.Library:Translate("AutoloadNone")), Callback = function()
 			local name = SaveManager.Options.SaveManager_ConfigList.Value
 			local success, result = self:SetAutoloadConfig(name)
 			if not success then
 				return self.Library:Notify({
 					Title = "Interface",
 					Content = "Config loader",
-					SubContent = "Failed to set autoload config: " .. result,
+					SubContent = self.Library:Translate("AutoloadFail", result),
 					Duration = 7
 				})
 			end
 			name = result
-			AutoloadButton:SetDesc("Current autoload config: " .. name)
+			AutoloadButton:SetDesc(self.Library:Translate("AutoloadDesc", name))
 			self.Library:Notify({
 				Title = "Interface",
 				Content = "Config loader",
-				SubContent = string.format("Set %q to auto load", name),
+				SubContent = self.Library:Translate("AutoloadSet", name),
 				Duration = 7
 			})
 		end})
 
 		local autoloadName = self:GetAutoloadConfig()
 		if autoloadName then
-			AutoloadButton:SetDesc("Current autoload config: " .. autoloadName)
+			AutoloadButton:SetDesc(self.Library:Translate("AutoloadDesc", autoloadName))
 		end
 
 		SaveManager:SetIgnoreIndexes({ "SaveManager_ConfigList", "SaveManager_ConfigName" })

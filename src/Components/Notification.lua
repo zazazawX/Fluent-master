@@ -109,6 +109,21 @@ function Notification:New(Config)
 	Config.SubContent = Config.SubContent or ""
 	Config.Duration = Config.Duration or nil
 	Config.Buttons = Config.Buttons or {}
+
+	local Type = Config.Type
+	local TypeColors = {
+		Success = Color3.fromRGB(46, 204, 113),
+		Warning = Color3.fromRGB(241, 196, 15),
+		Error = Color3.fromRGB(231, 76, 60),
+		Info = Color3.fromRGB(52, 152, 219),
+	}
+	local TypeIcons = {
+		Success = "check-circle",
+		Warning = "alert-triangle",
+		Error = "x-circle",
+		Info = "info",
+	}
+
 	local NewNotification = {
 		Closed = false,
 		Destroyed = false,
@@ -117,9 +132,30 @@ function Notification:New(Config)
 	}
 
 	NewNotification.AcrylicPaint = Acrylic.AcrylicPaint()
+	NewNotification.AcrylicPaint.Frame.ClipsDescendants = true
+
+	local HasIcon = Type ~= nil and TypeIcons[Type] ~= nil
+	local TitleXOffset = HasIcon and 42 or 14
+	local TextWidthOffset = HasIcon and -66 or -12
+	local HolderXOffset = HasIcon and 42 or 14
+	local HolderWidthOffset = HasIcon and -56 or -28
+
+	if Type and TypeColors[Type] then
+		New("Frame", {
+			Size = UDim2.new(0, 4, 1, 0),
+			Position = UDim2.new(0, 0, 0, 0),
+			BackgroundColor3 = TypeColors[Type],
+			BorderSizePixel = 0,
+			Parent = NewNotification.AcrylicPaint.Frame,
+		}, {
+			New("UICorner", {
+				CornerRadius = UDim.new(0, 4),
+			}),
+		})
+	end
 
 	NewNotification.Title = New("TextLabel", {
-		Position = UDim2.new(0, 14, 0, 17),
+		Position = UDim2.new(0, TitleXOffset, 0, 17),
 		Text = Config.Title,
 		RichText = true,
 		TextColor3 = Color3.fromRGB(255, 255, 255),
@@ -128,7 +164,7 @@ function Notification:New(Config)
 		TextSize = 13,
 		TextXAlignment = "Left",
 		TextYAlignment = "Center",
-		Size = UDim2.new(1, -12, 0, 12),
+		Size = UDim2.new(1, TextWidthOffset, 0, 12),
 		TextWrapped = true,
 		BackgroundTransparency = 1,
 		ThemeTag = {
@@ -172,8 +208,8 @@ function Notification:New(Config)
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(14, 40),
-		Size = UDim2.new(1, -28, 0, 0),
+		Position = UDim2.fromOffset(HolderXOffset, 40),
+		Size = UDim2.new(1, HolderWidthOffset, 0, 0),
 	}, {
 		New("UIListLayout", {
 			SortOrder = Enum.SortOrder.LayoutOrder,
@@ -214,6 +250,18 @@ function Notification:New(Config)
 		NewNotification.CloseButton,
 		NewNotification.LabelHolder,
 	})
+
+	if HasIcon then
+		local Library = require(Root)
+		NewNotification.Icon = New("ImageLabel", {
+			Size = UDim2.fromOffset(20, 20),
+			Position = UDim2.fromOffset(14, 13),
+			BackgroundTransparency = 1,
+			Image = Library:GetIcon(TypeIcons[Type]) or "",
+			ImageColor3 = TypeColors[Type],
+			Parent = NewNotification.Root,
+		})
+	end
 
 	if Config.Content == "" then
 		NewNotification.ContentLabel.Visible = false

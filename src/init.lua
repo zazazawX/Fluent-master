@@ -203,6 +203,103 @@ function Library:CreateWindow(Config)
 	return Window
 end
 
+Library.Language = "en"
+Library.CompactMode = false
+
+Library.Translations = {
+	th = {
+		["ConfigName"] = "ชื่อไฟล์การตั้งค่า",
+		["ConfigList"] = "รายการไฟล์ทั้งหมด",
+		["CreateConfig"] = "สร้างการตั้งค่าใหม่",
+		["LoadConfig"] = "โหลดการตั้งค่านี้",
+		["OverwriteConfig"] = "บันทึกทับตัวเดิม",
+		["RefreshList"] = "รีเฟรชรายการ",
+		["SetAutoload"] = "ตั้งเป็นโหลดอัตโนมัติ",
+		["Theme"] = "ธีมสีหน้าต่าง",
+		["Acrylic"] = "เอฟเฟกต์เบลอหลัง (Acrylic)",
+		["Transparency"] = "เปิดเอฟเฟกต์โปร่งแสง",
+		["MinimizeBind"] = "ปุ่มซ่อนหน้าต่าง",
+		["AutoloadDesc"] = "โหลดอัตโนมัติในปัจจุบัน: %s",
+		["ThemeDesc"] = "เปลี่ยนสไตล์สีสันของหน้าต่างหลัก",
+		["AcrylicDesc"] = "การเบลอพื้นหลังต้องการระดับกราฟิก 8 ขึ้นไป",
+		["TransparencyDesc"] = "ทำให้พื้นหลังแผงหน้าต่างมีความโปร่งแสงขึ้น",
+		["MinimizeDesc"] = "ปุ่มลัดสำหรับซ่อนหรือแสดงหน้าต่าง UI",
+		["AutoloadNone"] = "ไม่มี",
+		["InterfaceSection"] = "การปรับแต่งหน้าต่าง (Interface)",
+		["ConfigSection"] = "การจัดการตั้งค่า (Configuration)",
+		["CompactMode"] = "โหมดกะทัดรัด (Compact Mode)",
+		["CompactModeDesc"] = "ย่อระยะห่าง ขนาดตัวอักษร และขนาดปุ่มให้เล็กลง",
+		["AutoloadFail"] = "ตั้งเซฟโหลดอัตโนมัติล้มเหลว: %s",
+		["AutoloadLoaded"] = "โหลดเซฟอัตโนมัติ %q เรียบร้อย",
+		["AutoloadSet"] = "ตั้งเซฟ %q ให้โหลดอัตโนมัติเรียบร้อย",
+		["SaveFail"] = "บันทึกข้อมูลล้มเหลว: %s",
+		["SaveSuccess"] = "สร้างเซฟ %q เรียบร้อย",
+		["LoadFail"] = "โหลดข้อมูลล้มเหลว: %s",
+		["LoadSuccess"] = "โหลดเซฟ %q เรียบร้อย",
+		["OverwriteFail"] = "บันทึกทับล้มเหลว: %s",
+		["OverwriteSuccess"] = "บันทึกทับเซฟ %q เรียบร้อย",
+		["ReducedMotion"] = "ลดการเคลื่อนไหว (Reduced Motion)",
+		["ReducedMotionDesc"] = "ปิดแอนิเมชันของระบบเพื่อลดการใช้ทรัพยากร",
+		["Language"] = "ภาษา (Language)",
+		["LanguageDesc"] = "เปลี่ยนภาษาของเมนูหลัก",
+	},
+	en = {
+		["ConfigName"] = "Config name",
+		["ConfigList"] = "Config list",
+		["CreateConfig"] = "Create config",
+		["LoadConfig"] = "Load config",
+		["OverwriteConfig"] = "Overwrite config",
+		["RefreshList"] = "Refresh list",
+		["SetAutoload"] = "Set as autoload",
+		["Theme"] = "Theme",
+		["Acrylic"] = "Acrylic",
+		["Transparency"] = "Transparency",
+		["MinimizeBind"] = "Minimize Bind",
+		["AutoloadDesc"] = "Current autoload config: %s",
+		["ThemeDesc"] = "Changes the interface theme.",
+		["AcrylicDesc"] = "The blurred background requires graphic quality 8+",
+		["TransparencyDesc"] = "Makes the interface transparent.",
+		["MinimizeDesc"] = "Hotkey for minimizing the main window.",
+		["AutoloadNone"] = "none",
+		["InterfaceSection"] = "Interface",
+		["ConfigSection"] = "Configuration",
+		["CompactMode"] = "Compact Mode",
+		["CompactModeDesc"] = "Reduces UI spacing, padding, and text sizes.",
+		["AutoloadFail"] = "Failed to set autoload config: %s",
+		["AutoloadLoaded"] = "Auto loaded config %q",
+		["AutoloadSet"] = "Set %q to auto load",
+		["SaveFail"] = "Failed to save config: %s",
+		["SaveSuccess"] = "Created config %q",
+		["LoadFail"] = "Failed to load config: %s",
+		["LoadSuccess"] = "Loaded config %q",
+		["OverwriteFail"] = "Failed to overwrite config: %s",
+		["OverwriteSuccess"] = "Overwrote config %q",
+		["ReducedMotion"] = "Reduced motion",
+		["ReducedMotionDesc"] = "Disables non-essential interface animations.",
+		["Language"] = "Language",
+		["LanguageDesc"] = "Changes the interface language.",
+	}
+}
+
+function Library:SetLanguage(Lang)
+	if Library.Translations[Lang] then
+		Library.Language = Lang
+		Creator.UpdateTheme()
+	end
+end
+
+function Library:Translate(Key, ...)
+	local Lang = Library.Language or "en"
+	local Dict = Library.Translations[Lang] or Library.Translations["en"]
+	local Format = Dict[Key] or Library.Translations["en"][Key] or Key
+	return string.format(Format, ...)
+end
+
+function Library:SetCompactMode(Value)
+	Library.CompactMode = Value
+	Creator.UpdateTheme()
+end
+
 function Library:SetTheme(Value)
 	if table.find(Library.Themes, Value) then
 		Library.Theme = Value
@@ -230,7 +327,7 @@ end
 function Library:Destroy()
 	Library.Unloaded = true
 	NotificationModule:Clear()
-	Creator.Disconnect()
+	Creator.ClearRegistry()
 	for _, Window in ipairs(Library.Windows) do
 		pcall(function()
 			Window:Destroy()

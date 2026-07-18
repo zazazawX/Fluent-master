@@ -788,6 +788,7 @@ return function(Title, Desc, Parent, Hover, TooltipText)
 		BackgroundTransparency = 1,
 		ThemeTag = {
 			TextColor3 = "Text",
+			TextSize = "ElementTitleSize",
 		},
 	})
 
@@ -804,7 +805,17 @@ return function(Title, Desc, Parent, Hover, TooltipText)
 		Size = UDim2.new(1, 0, 0, 14),
 		ThemeTag = {
 			TextColor3 = "SubText",
+			TextSize = "ElementDescSize",
 		},
+	})
+
+	Element.Padding = New("UIPadding", {
+		PaddingBottom = UDim.new(0, 13),
+		PaddingTop = UDim.new(0, 13),
+		ThemeTag = {
+			PaddingBottom = "ElementPadding",
+			PaddingTop = "ElementPadding",
+		}
 	})
 
 	Element.LabelHolder = New("Frame", {
@@ -818,10 +829,7 @@ return function(Title, Desc, Parent, Hover, TooltipText)
 			SortOrder = Enum.SortOrder.LayoutOrder,
 			VerticalAlignment = Enum.VerticalAlignment.Center,
 		}),
-		New("UIPadding", {
-			PaddingBottom = UDim.new(0, 13),
-			PaddingTop = UDim.new(0, 13),
-		}),
+		Element.Padding,
 		Element.TitleLabel,
 		Element.DescLabel,
 	})
@@ -1115,6 +1123,21 @@ function Notification:New(Config)
 	Config.SubContent = Config.SubContent or ""
 	Config.Duration = Config.Duration or nil
 	Config.Buttons = Config.Buttons or {}
+
+	local Type = Config.Type
+	local TypeColors = {
+		Success = Color3.fromRGB(46, 204, 113),
+		Warning = Color3.fromRGB(241, 196, 15),
+		Error = Color3.fromRGB(231, 76, 60),
+		Info = Color3.fromRGB(52, 152, 219),
+	}
+	local TypeIcons = {
+		Success = "check-circle",
+		Warning = "alert-triangle",
+		Error = "x-circle",
+		Info = "info",
+	}
+
 	local NewNotification = {
 		Closed = false,
 		Destroyed = false,
@@ -1123,9 +1146,30 @@ function Notification:New(Config)
 	}
 
 	NewNotification.AcrylicPaint = Acrylic.AcrylicPaint()
+	NewNotification.AcrylicPaint.Frame.ClipsDescendants = true
+
+	local HasIcon = Type ~= nil and TypeIcons[Type] ~= nil
+	local TitleXOffset = HasIcon and 42 or 14
+	local TextWidthOffset = HasIcon and -66 or -12
+	local HolderXOffset = HasIcon and 42 or 14
+	local HolderWidthOffset = HasIcon and -56 or -28
+
+	if Type and TypeColors[Type] then
+		New("Frame", {
+			Size = UDim2.new(0, 4, 1, 0),
+			Position = UDim2.new(0, 0, 0, 0),
+			BackgroundColor3 = TypeColors[Type],
+			BorderSizePixel = 0,
+			Parent = NewNotification.AcrylicPaint.Frame,
+		}, {
+			New("UICorner", {
+				CornerRadius = UDim.new(0, 4),
+			}),
+		})
+	end
 
 	NewNotification.Title = New("TextLabel", {
-		Position = UDim2.new(0, 14, 0, 17),
+		Position = UDim2.new(0, TitleXOffset, 0, 17),
 		Text = Config.Title,
 		RichText = true,
 		TextColor3 = Color3.fromRGB(255, 255, 255),
@@ -1134,7 +1178,7 @@ function Notification:New(Config)
 		TextSize = 13,
 		TextXAlignment = "Left",
 		TextYAlignment = "Center",
-		Size = UDim2.new(1, -12, 0, 12),
+		Size = UDim2.new(1, TextWidthOffset, 0, 12),
 		TextWrapped = true,
 		BackgroundTransparency = 1,
 		ThemeTag = {
@@ -1178,8 +1222,8 @@ function Notification:New(Config)
 		AutomaticSize = Enum.AutomaticSize.Y,
 		BackgroundColor3 = Color3.fromRGB(255, 255, 255),
 		BackgroundTransparency = 1,
-		Position = UDim2.fromOffset(14, 40),
-		Size = UDim2.new(1, -28, 0, 0),
+		Position = UDim2.fromOffset(HolderXOffset, 40),
+		Size = UDim2.new(1, HolderWidthOffset, 0, 0),
 	}, {
 		New("UIListLayout", {
 			SortOrder = Enum.SortOrder.LayoutOrder,
@@ -1220,6 +1264,18 @@ function Notification:New(Config)
 		NewNotification.CloseButton,
 		NewNotification.LabelHolder,
 	})
+
+	if HasIcon then
+		local Library = require(Root)
+		NewNotification.Icon = New("ImageLabel", {
+			Size = UDim2.fromOffset(20, 20),
+			Position = UDim2.fromOffset(14, 13),
+			BackgroundTransparency = 1,
+			Image = Library:GetIcon(TypeIcons[Type]) or "",
+			ImageColor3 = TypeColors[Type],
+			Parent = NewNotification.Root,
+		})
+	end
 
 	if Config.Content == "" then
 		NewNotification.ContentLabel.Visible = false
@@ -1581,6 +1637,7 @@ function TabModule:New(Title, Icon, Parent)
 		Parent = Parent,
 		ThemeTag = {
 			BackgroundColor3 = "Tab",
+			Size = "TabFrameSize",
 		},
 	}, {
 		New("UICorner", {
@@ -3103,13 +3160,46 @@ function Creator.Disconnect()
 	for Idx = #Creator.Signals, 1, -1 do
 		local Connection = table.remove(Creator.Signals, Idx)
 		if Connection.Connected then
-			Connection:Disconnect()
+			pcall(function() Connection:Disconnect() end)
 		end
 	end
 	table.clear(Creator.SignalCleanups)
 end
 
+function Creator.ClearRegistry()
+	for Instance, Motors in next, Creator.TransparencyMotors do
+		if type(Motors) == "table" then
+			for Motor in next, Motors do
+				pcall(function() Motor:destroy() end)
+			end
+		end
+	end
+	
+	for Object, Data in next, Creator.Registry do
+		if Data.DestroyingConnection then
+			pcall(function() Data.DestroyingConnection:Disconnect() end)
+		end
+	end
+	
+	Creator.Disconnect()
+	
+	table.clear(Creator.Registry)
+	table.clear(Creator.TransparencyMotors)
+	table.clear(Creator.Signals)
+	table.clear(Creator.SignalCleanups)
+end
+
 function Creator.GetThemeProperty(Property)
+	if Property == "ElementPadding" then
+		return require(Root).CompactMode and UDim.new(0, 8) or UDim.new(0, 13)
+	elseif Property == "ElementTitleSize" then
+		return require(Root).CompactMode and 11 or 13
+	elseif Property == "ElementDescSize" then
+		return require(Root).CompactMode and 10 or 12
+	elseif Property == "TabFrameSize" then
+		return require(Root).CompactMode and UDim2.new(1, 0, 0, 28) or UDim2.new(1, 0, 0, 34)
+	end
+
 	if Themes[require(Root).Theme][Property] then
 		return Themes[require(Root).Theme][Property]
 	end
@@ -6638,6 +6728,103 @@ function Library:CreateWindow(Config)
 	return Window
 end
 
+Library.Language = "en"
+Library.CompactMode = false
+
+Library.Translations = {
+	th = {
+		["ConfigName"] = "ชื่อไฟล์การตั้งค่า",
+		["ConfigList"] = "รายการไฟล์ทั้งหมด",
+		["CreateConfig"] = "สร้างการตั้งค่าใหม่",
+		["LoadConfig"] = "โหลดการตั้งค่านี้",
+		["OverwriteConfig"] = "บันทึกทับตัวเดิม",
+		["RefreshList"] = "รีเฟรชรายการ",
+		["SetAutoload"] = "ตั้งเป็นโหลดอัตโนมัติ",
+		["Theme"] = "ธีมสีหน้าต่าง",
+		["Acrylic"] = "เอฟเฟกต์เบลอหลัง (Acrylic)",
+		["Transparency"] = "เปิดเอฟเฟกต์โปร่งแสง",
+		["MinimizeBind"] = "ปุ่มซ่อนหน้าต่าง",
+		["AutoloadDesc"] = "โหลดอัตโนมัติในปัจจุบัน: %s",
+		["ThemeDesc"] = "เปลี่ยนสไตล์สีสันของหน้าต่างหลัก",
+		["AcrylicDesc"] = "การเบลอพื้นหลังต้องการระดับกราฟิก 8 ขึ้นไป",
+		["TransparencyDesc"] = "ทำให้พื้นหลังแผงหน้าต่างมีความโปร่งแสงขึ้น",
+		["MinimizeDesc"] = "ปุ่มลัดสำหรับซ่อนหรือแสดงหน้าต่าง UI",
+		["AutoloadNone"] = "ไม่มี",
+		["InterfaceSection"] = "การปรับแต่งหน้าต่าง (Interface)",
+		["ConfigSection"] = "การจัดการตั้งค่า (Configuration)",
+		["CompactMode"] = "โหมดกะทัดรัด (Compact Mode)",
+		["CompactModeDesc"] = "ย่อระยะห่าง ขนาดตัวอักษร และขนาดปุ่มให้เล็กลง",
+		["AutoloadFail"] = "ตั้งเซฟโหลดอัตโนมัติล้มเหลว: %s",
+		["AutoloadLoaded"] = "โหลดเซฟอัตโนมัติ %q เรียบร้อย",
+		["AutoloadSet"] = "ตั้งเซฟ %q ให้โหลดอัตโนมัติเรียบร้อย",
+		["SaveFail"] = "บันทึกข้อมูลล้มเหลว: %s",
+		["SaveSuccess"] = "สร้างเซฟ %q เรียบร้อย",
+		["LoadFail"] = "โหลดข้อมูลล้มเหลว: %s",
+		["LoadSuccess"] = "โหลดเซฟ %q เรียบร้อย",
+		["OverwriteFail"] = "บันทึกทับล้มเหลว: %s",
+		["OverwriteSuccess"] = "บันทึกทับเซฟ %q เรียบร้อย",
+		["ReducedMotion"] = "ลดการเคลื่อนไหว (Reduced Motion)",
+		["ReducedMotionDesc"] = "ปิดแอนิเมชันของระบบเพื่อลดการใช้ทรัพยากร",
+		["Language"] = "ภาษา (Language)",
+		["LanguageDesc"] = "เปลี่ยนภาษาของเมนูหลัก",
+	},
+	en = {
+		["ConfigName"] = "Config name",
+		["ConfigList"] = "Config list",
+		["CreateConfig"] = "Create config",
+		["LoadConfig"] = "Load config",
+		["OverwriteConfig"] = "Overwrite config",
+		["RefreshList"] = "Refresh list",
+		["SetAutoload"] = "Set as autoload",
+		["Theme"] = "Theme",
+		["Acrylic"] = "Acrylic",
+		["Transparency"] = "Transparency",
+		["MinimizeBind"] = "Minimize Bind",
+		["AutoloadDesc"] = "Current autoload config: %s",
+		["ThemeDesc"] = "Changes the interface theme.",
+		["AcrylicDesc"] = "The blurred background requires graphic quality 8+",
+		["TransparencyDesc"] = "Makes the interface transparent.",
+		["MinimizeDesc"] = "Hotkey for minimizing the main window.",
+		["AutoloadNone"] = "none",
+		["InterfaceSection"] = "Interface",
+		["ConfigSection"] = "Configuration",
+		["CompactMode"] = "Compact Mode",
+		["CompactModeDesc"] = "Reduces UI spacing, padding, and text sizes.",
+		["AutoloadFail"] = "Failed to set autoload config: %s",
+		["AutoloadLoaded"] = "Auto loaded config %q",
+		["AutoloadSet"] = "Set %q to auto load",
+		["SaveFail"] = "Failed to save config: %s",
+		["SaveSuccess"] = "Created config %q",
+		["LoadFail"] = "Failed to load config: %s",
+		["LoadSuccess"] = "Loaded config %q",
+		["OverwriteFail"] = "Failed to overwrite config: %s",
+		["OverwriteSuccess"] = "Overwrote config %q",
+		["ReducedMotion"] = "Reduced motion",
+		["ReducedMotionDesc"] = "Disables non-essential interface animations.",
+		["Language"] = "Language",
+		["LanguageDesc"] = "Changes the interface language.",
+	}
+}
+
+function Library:SetLanguage(Lang)
+	if Library.Translations[Lang] then
+		Library.Language = Lang
+		Creator.UpdateTheme()
+	end
+end
+
+function Library:Translate(Key, ...)
+	local Lang = Library.Language or "en"
+	local Dict = Library.Translations[Lang] or Library.Translations["en"]
+	local Format = Dict[Key] or Library.Translations["en"][Key] or Key
+	return string.format(Format, ...)
+end
+
+function Library:SetCompactMode(Value)
+	Library.CompactMode = Value
+	Creator.UpdateTheme()
+end
+
 function Library:SetTheme(Value)
 	if table.find(Library.Themes, Value) then
 		Library.Theme = Value
@@ -6665,7 +6852,7 @@ end
 function Library:Destroy()
 	Library.Unloaded = true
 	NotificationModule:Clear()
-	Creator.Disconnect()
+	Creator.ClearRegistry()
 	for _, Window in ipairs(Library.Windows) do
 		pcall(function()
 			Window:Destroy()

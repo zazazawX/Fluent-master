@@ -34,6 +34,9 @@ end
 
 local function require(name)
     name = tostring(name)
+    if name == "" then
+        name = "main"
+    end
     if loaded[name] then
         return loaded[name]
     end

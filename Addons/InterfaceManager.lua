@@ -68,11 +68,11 @@ local InterfaceManager = {} do
         Library:SetLanguage(Settings.Language or "en")
         Library:SetCompactMode(Settings.CompactMode or false)
 
-		local section = tab:AddSection(Library:Translate("InterfaceSection"))
+		local section = tab:AddSection("InterfaceSection")
 
 		local InterfaceTheme = section:AddDropdown("InterfaceTheme", {
-			Title = Library:Translate("Theme"),
-			Description = Library:Translate("ThemeDesc"),
+			Title = "Theme",
+			Description = "ThemeDesc",
 			Values = Library.Themes,
 			Default = Settings.Theme,
 			Callback = function(Value)
@@ -86,8 +86,8 @@ local InterfaceManager = {} do
 	
 		if Library.UseAcrylic then
 			section:AddToggle("AcrylicToggle", {
-				Title = Library:Translate("Acrylic"),
-				Description = Library:Translate("AcrylicDesc"),
+				Title = "Acrylic",
+				Description = "AcrylicDesc",
 				Default = Settings.Acrylic,
 				Callback = function(Value)
 					Library:ToggleAcrylic(Value)
@@ -98,8 +98,8 @@ local InterfaceManager = {} do
 		end
 	
 		section:AddToggle("TransparentToggle", {
-			Title = Library:Translate("Transparency"),
-			Description = Library:Translate("TransparencyDesc"),
+			Title = "Transparency",
+			Description = "TransparencyDesc",
 			Default = Settings.Transparency,
 			Callback = function(Value)
 				Library:ToggleTransparency(Value)
@@ -109,8 +109,8 @@ local InterfaceManager = {} do
 		})
 
 		section:AddToggle("CompactModeToggle", {
-			Title = Library:Translate("CompactMode"),
-			Description = Library:Translate("CompactModeDesc"),
+			Title = "CompactMode",
+			Description = "CompactModeDesc",
 			Default = Settings.CompactMode,
 			Callback = function(Value)
 				Library:SetCompactMode(Value)
@@ -120,8 +120,8 @@ local InterfaceManager = {} do
 		})
 
 		section:AddToggle("ReducedMotionToggle", {
-			Title = Library:Translate("ReducedMotion"),
-			Description = Library:Translate("ReducedMotionDesc"),
+			Title = "ReducedMotion",
+			Description = "ReducedMotionDesc",
 			Default = Settings.ReducedMotion,
 			Callback = function(Value)
 				Library:SetReducedMotion(Value)
@@ -131,8 +131,8 @@ local InterfaceManager = {} do
 		})
 
 		local LanguageDropdown = section:AddDropdown("InterfaceLanguage", {
-			Title = Library:Translate("Language"),
-			Description = Library:Translate("LanguageDesc"),
+			Title = "Language",
+			Description = "LanguageDesc",
 			Values = {"en", "th"},
 			Default = Settings.Language or "en",
 			Callback = function(Value)
@@ -143,7 +143,7 @@ local InterfaceManager = {} do
 		})
 		LanguageDropdown:SetValue(Settings.Language or "en")
 	
-		local MenuKeybind = section:AddKeybind("MenuKeybind", { Title = Library:Translate("MinimizeBind"), Default = Settings.MenuKeybind })
+		local MenuKeybind = section:AddKeybind("MenuKeybind", { Title = "MinimizeBind", Default = Settings.MenuKeybind })
 		MenuKeybind:OnChanged(function()
 			Settings.MenuKeybind = MenuKeybind.Value
             InterfaceManager:SaveSettings()

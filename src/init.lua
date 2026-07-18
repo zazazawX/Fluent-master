@@ -402,10 +402,20 @@ Library.Translations = {
 	}
 }
 
+Library.LanguageChangedSignals = {}
+
+function Library:OnLanguageChanged(Callback)
+	table.insert(Library.LanguageChangedSignals, Callback)
+end
+
 function Library:SetLanguage(Lang)
 	if Library.Translations[Lang] then
 		Library.Language = Lang
 		Creator.UpdateTheme()
+		Creator.UpdateTranslations()
+		for _, cb in ipairs(Library.LanguageChangedSignals) do
+			pcall(cb)
+		end
 	end
 end
 

@@ -149,6 +149,29 @@ function Creator.ClearRegistry()
 	table.clear(Creator.TransparencyMotors)
 	table.clear(Creator.Signals)
 	table.clear(Creator.SignalCleanups)
+	table.clear(Creator.TranslationRegistry)
+end
+
+Creator.TranslationRegistry = {}
+
+function Creator.AddTranslationObject(Object, Property, Key)
+	local Data = Creator.TranslationRegistry[Object] or {}
+	Data[Property] = Key
+	Creator.TranslationRegistry[Object] = Data
+	
+	Object.Destroying:Connect(function()
+		Creator.TranslationRegistry[Object] = nil
+	end)
+end
+
+function Creator.UpdateTranslations()
+	for Object, Props in next, Creator.TranslationRegistry do
+		for Property, Key in next, Props do
+			pcall(function()
+				Object[Property] = require(Root):Translate(Key)
+			end)
+		end
+	end
 end
 
 function Creator.GetThemeProperty(Property)

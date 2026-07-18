@@ -777,9 +777,13 @@ local New = Creator.New
 return function(Title, Desc, Parent, Hover, TooltipText)
 	local Element = {}
 
+	local Library = require(Root)
+	local isTitleTranslated = Library.Translations.en[Title] ~= nil
+	local isDescTranslated = Library.Translations.en[Desc] ~= nil
+
 	Element.TitleLabel = New("TextLabel", {
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
-		Text = Title,
+		Text = isTitleTranslated and Library:Translate(Title) or Title,
 		TextColor3 = Color3.fromRGB(240, 240, 240),
 		TextSize = 13,
 		TextXAlignment = Enum.TextXAlignment.Left,
@@ -792,9 +796,13 @@ return function(Title, Desc, Parent, Hover, TooltipText)
 		},
 	})
 
+	if isTitleTranslated then
+		Creator.AddTranslationObject(Element.TitleLabel, "Text", Title)
+	end
+
 	Element.DescLabel = New("TextLabel", {
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-		Text = Desc,
+		Text = isDescTranslated and Library:Translate(Desc) or (Desc or ""),
 		TextColor3 = Color3.fromRGB(200, 200, 200),
 		TextSize = 12,
 		TextWrapped = true,
@@ -808,6 +816,10 @@ return function(Title, Desc, Parent, Hover, TooltipText)
 			TextSize = "ElementDescSize",
 		},
 	})
+
+	if isDescTranslated then
+		Creator.AddTranslationObject(Element.DescLabel, "Text", Desc)
+	end
 
 	Element.Padding = New("UIPadding", {
 		PaddingBottom = UDim.new(0, 13),
@@ -1430,25 +1442,35 @@ return function(Title, Parent)
 		},
 	})
 
+	local Library = require(Root)
+	local isTitleTranslated = Library.Translations.en[Title] ~= nil
+	local LabelText = isTitleTranslated and Library:Translate(Title) or Title
+
+	local Label = New("TextLabel", {
+		RichText = true,
+		Text = LabelText,
+		TextTransparency = 0,
+		FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+		TextSize = 18,
+		TextXAlignment = "Left",
+		TextYAlignment = "Center",
+		Size = UDim2.new(1, -24, 1, 0),
+		ThemeTag = {
+			TextColor3 = "Text",
+		},
+	})
+
+	if isTitleTranslated then
+		Creator.AddTranslationObject(Label, "Text", Title)
+	end
+
 	local HeaderButton = New("TextButton", {
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 0, 20),
 		Position = UDim2.fromOffset(0, 2),
 		Text = "",
 	}, {
-		New("TextLabel", {
-			RichText = true,
-			Text = Title,
-			TextTransparency = 0,
-			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
-			TextSize = 18,
-			TextXAlignment = "Left",
-			TextYAlignment = "Center",
-			Size = UDim2.new(1, -24, 1, 0),
-			ThemeTag = {
-				TextColor3 = "Text",
-			},
-		}),
+		Label,
 		Chevron,
 	})
 
@@ -3173,6 +3195,29 @@ function Creator.ClearRegistry()
 	table.clear(Creator.TransparencyMotors)
 	table.clear(Creator.Signals)
 	table.clear(Creator.SignalCleanups)
+	table.clear(Creator.TranslationRegistry)
+end
+
+Creator.TranslationRegistry = {}
+
+function Creator.AddTranslationObject(Object, Property, Key)
+	local Data = Creator.TranslationRegistry[Object] or {}
+	Data[Property] = Key
+	Creator.TranslationRegistry[Object] = Data
+	
+	Object.Destroying:Connect(function()
+		Creator.TranslationRegistry[Object] = nil
+	end)
+end
+
+function Creator.UpdateTranslations()
+	for Object, Props in next, Creator.TranslationRegistry do
+		for Property, Key in next, Props do
+			pcall(function()
+				Object[Property] = require(Root):Translate(Key)
+			end)
+		end
+	end
 end
 
 function Creator.GetThemeProperty(Property)
@@ -6913,10 +6958,20 @@ Library.Translations = {
 	}
 }
 
+Library.LanguageChangedSignals = {}
+
+function Library:OnLanguageChanged(Callback)
+	table.insert(Library.LanguageChangedSignals, Callback)
+end
+
 function Library:SetLanguage(Lang)
 	if Library.Translations[Lang] then
 		Library.Language = Lang
 		Creator.UpdateTheme()
+		Creator.UpdateTranslations()
+		for _, cb in ipairs(Library.LanguageChangedSignals) do
+			pcall(cb)
+		end
 	end
 end
 

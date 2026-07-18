@@ -33,25 +33,35 @@ return function(Title, Parent)
 		},
 	})
 
+	local Library = require(Root)
+	local isTitleTranslated = Library.Translations.en[Title] ~= nil
+	local LabelText = isTitleTranslated and Library:Translate(Title) or Title
+
+	local Label = New("TextLabel", {
+		RichText = true,
+		Text = LabelText,
+		TextTransparency = 0,
+		FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+		TextSize = 18,
+		TextXAlignment = "Left",
+		TextYAlignment = "Center",
+		Size = UDim2.new(1, -24, 1, 0),
+		ThemeTag = {
+			TextColor3 = "Text",
+		},
+	})
+
+	if isTitleTranslated then
+		Creator.AddTranslationObject(Label, "Text", Title)
+	end
+
 	local HeaderButton = New("TextButton", {
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 0, 20),
 		Position = UDim2.fromOffset(0, 2),
 		Text = "",
 	}, {
-		New("TextLabel", {
-			RichText = true,
-			Text = Title,
-			TextTransparency = 0,
-			FontFace = Font.new("rbxassetid://12187365364", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
-			TextSize = 18,
-			TextXAlignment = "Left",
-			TextYAlignment = "Center",
-			Size = UDim2.new(1, -24, 1, 0),
-			ThemeTag = {
-				TextColor3 = "Text",
-			},
-		}),
+		Label,
 		Chevron,
 	})
 

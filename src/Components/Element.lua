@@ -5,9 +5,13 @@ local New = Creator.New
 return function(Title, Desc, Parent, Hover, TooltipText)
 	local Element = {}
 
+	local Library = require(Root)
+	local isTitleTranslated = Library.Translations.en[Title] ~= nil
+	local isDescTranslated = Library.Translations.en[Desc] ~= nil
+
 	Element.TitleLabel = New("TextLabel", {
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
-		Text = Title,
+		Text = isTitleTranslated and Library:Translate(Title) or Title,
 		TextColor3 = Color3.fromRGB(240, 240, 240),
 		TextSize = 13,
 		TextXAlignment = Enum.TextXAlignment.Left,
@@ -20,9 +24,13 @@ return function(Title, Desc, Parent, Hover, TooltipText)
 		},
 	})
 
+	if isTitleTranslated then
+		Creator.AddTranslationObject(Element.TitleLabel, "Text", Title)
+	end
+
 	Element.DescLabel = New("TextLabel", {
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-		Text = Desc,
+		Text = isDescTranslated and Library:Translate(Desc) or (Desc or ""),
 		TextColor3 = Color3.fromRGB(200, 200, 200),
 		TextSize = 12,
 		TextWrapped = true,
@@ -36,6 +44,10 @@ return function(Title, Desc, Parent, Hover, TooltipText)
 			TextSize = "ElementDescSize",
 		},
 	})
+
+	if isDescTranslated then
+		Creator.AddTranslationObject(Element.DescLabel, "Text", Desc)
+	end
 
 	Element.Padding = New("UIPadding", {
 		PaddingBottom = UDim.new(0, 13),

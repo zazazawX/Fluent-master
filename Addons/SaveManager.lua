@@ -462,13 +462,13 @@ local SaveManager = {} do
 	function SaveManager:BuildConfigSection(tab)
 		assert(self.Library, "Must set SaveManager.Library")
 
-		local section = tab:AddSection(self.Library:Translate("ConfigSection"))
+		local section = tab:AddSection("ConfigSection")
 
-		section:AddInput("SaveManager_ConfigName",    { Title = self.Library:Translate("ConfigName") })
-		section:AddDropdown("SaveManager_ConfigList", { Title = self.Library:Translate("ConfigList"), Values = self:RefreshConfigList(), AllowNull = true })
+		section:AddInput("SaveManager_ConfigName",    { Title = "ConfigName" })
+		section:AddDropdown("SaveManager_ConfigList", { Title = "ConfigList", Values = self:RefreshConfigList(), AllowNull = true })
 
 		section:AddButton({
-            Title = self.Library:Translate("CreateConfig"),
+            Title = "CreateConfig",
             Callback = function()
                 local name = SaveManager.Options.SaveManager_ConfigName.Value
 
@@ -495,7 +495,7 @@ local SaveManager = {} do
             end
         })
 
-        section:AddButton({Title = self.Library:Translate("LoadConfig"), Callback = function()
+        section:AddButton({Title = "LoadConfig", Callback = function()
 			local name = SaveManager.Options.SaveManager_ConfigList.Value
 
 			local success, result = self:Load(name)
@@ -517,7 +517,7 @@ local SaveManager = {} do
 			})
 		end})
 
-		section:AddButton({Title = self.Library:Translate("OverwriteConfig"), Callback = function()
+		section:AddButton({Title = "OverwriteConfig", Callback = function()
 			local name = SaveManager.Options.SaveManager_ConfigList.Value
 
 			local success, result = self:Save(name)
@@ -539,13 +539,13 @@ local SaveManager = {} do
 			})
 		end})
 
-		section:AddButton({Title = self.Library:Translate("RefreshList"), Callback = function()
+		section:AddButton({Title = "RefreshList", Callback = function()
 			SaveManager.Options.SaveManager_ConfigList:SetValues(self:RefreshConfigList())
 			SaveManager.Options.SaveManager_ConfigList:SetValue(nil)
 		end})
 
 		local AutoloadButton
-		AutoloadButton = section:AddButton({Title = self.Library:Translate("SetAutoload"), Description = self.Library:Translate("AutoloadDesc", self.Library:Translate("AutoloadNone")), Callback = function()
+		AutoloadButton = section:AddButton({Title = "SetAutoload", Description = self.Library:Translate("AutoloadDesc", self.Library:Translate("AutoloadNone")), Callback = function()
 			local name = SaveManager.Options.SaveManager_ConfigList.Value
 			local success, result = self:SetAutoloadConfig(name)
 			if not success then
@@ -570,6 +570,11 @@ local SaveManager = {} do
 		if autoloadName then
 			AutoloadButton:SetDesc(self.Library:Translate("AutoloadDesc", autoloadName))
 		end
+
+		self.Library:OnLanguageChanged(function()
+			local currentAutoload = self:GetAutoloadConfig() or self.Library:Translate("AutoloadNone")
+			AutoloadButton:SetDesc(self.Library:Translate("AutoloadDesc", currentAutoload))
+		end)
 
 		SaveManager:SetIgnoreIndexes({ "SaveManager_ConfigList", "SaveManager_ConfigName" })
 	end

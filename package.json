@@ -5,7 +5,7 @@
   "main": "init.lua",
   "scripts": {
     "rojo": "mkdirp dist && rojo build -o dist/main.rbxm",
-    "bundle": "pnpm run rojo && lune build",
+    "bundle": "pnpm run rojo && node bundle.js",
     "test-place": "rojo serve test.project.json"
   },
   "keywords": [],

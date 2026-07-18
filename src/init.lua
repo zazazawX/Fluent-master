@@ -200,6 +200,127 @@ function Library:CreateWindow(Config)
 	table.insert(Library.Windows, Window)
 	Library:SetTheme(Library.Theme)
 
+	local ShowSplash = Config.ShowSplashScreen ~= false
+	if ShowSplash then
+		Window.Root.Visible = false
+
+		local SplashFrame = New("Frame", {
+			Size = UDim2.fromScale(1, 1),
+			BackgroundTransparency = 1,
+			Parent = Library.Layers.Overlay,
+		})
+
+		local Container = New("Frame", {
+			Size = UDim2.fromOffset(360, 100),
+			Position = UDim2.fromScale(0.5, 0.5),
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			BackgroundTransparency = 1,
+			Parent = SplashFrame,
+		})
+
+		local TitleLabel = New("TextLabel", {
+			Size = UDim2.new(1, 0, 0, 24),
+			Position = UDim2.new(0, 0, 0, 0),
+			Text = Config.SplashScreenTitle or ("Loading " .. Config.Title .. "..."),
+			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+			TextSize = 18,
+			TextColor3 = Color3.fromRGB(255, 255, 255),
+			TextXAlignment = Enum.TextXAlignment.Center,
+			BackgroundTransparency = 1,
+			Parent = Container,
+		})
+
+		local SubLabel = New("TextLabel", {
+			Size = UDim2.new(1, 0, 0, 20),
+			Position = UDim2.new(0, 0, 0, 30),
+			Text = "Building UI Library...",
+			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Light, Enum.FontStyle.Normal),
+			TextSize = 13,
+			TextColor3 = Color3.fromRGB(180, 180, 180),
+			TextXAlignment = Enum.TextXAlignment.Center,
+			BackgroundTransparency = 1,
+			Parent = Container,
+		})
+
+		local ProgressTrack = New("Frame", {
+			Size = UDim2.fromOffset(300, 4),
+			Position = UDim2.new(0.5, 0, 0, 65),
+			AnchorPoint = Vector2.new(0.5, 0),
+			BackgroundColor3 = Color3.fromRGB(60, 60, 60),
+			BackgroundTransparency = 0.5,
+			BorderSizePixel = 0,
+			Parent = Container,
+		}, {
+			New("UICorner", {
+				CornerRadius = UDim.new(1, 0),
+			}),
+		})
+
+		local ProgressFill = New("Frame", {
+			Size = UDim2.fromScale(0, 1),
+			BackgroundColor3 = Creator.GetThemeProperty("Accent") or Color3.fromRGB(96, 205, 255),
+			BorderSizePixel = 0,
+			Parent = ProgressTrack,
+		}, {
+			New("UICorner", {
+				CornerRadius = UDim.new(1, 0),
+			}),
+		})
+
+		local SplashScale = New("UIScale", {
+			Scale = 1,
+			Parent = Container,
+		})
+
+		task.spawn(function()
+			local Steps = {
+				{ val = 0.15, text = "Loading files..." },
+				{ val = 0.35, text = "Building UI elements..." },
+				{ val = 0.60, text = "Applying themes..." },
+				{ val = 0.85, text = "Loading configurations..." },
+				{ val = 1.00, text = "Ready!" },
+			}
+
+			local TweenService = game:GetService("TweenService")
+			for _, step in ipairs(Steps) do
+				SubLabel.Text = step.text
+				local Tween = TweenService:Create(ProgressFill, TweenInfo.new(0.3, Enum.EasingStyle.OutQuad), { Size = UDim2.fromScale(step.val, 1) })
+				Tween:Play()
+				task.wait(0.35)
+			end
+
+			task.wait(0.1)
+
+			local FadeTime = 0.3
+			local FadeTweenInfo = TweenInfo.new(FadeTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+			TweenService:Create(TitleLabel, FadeTweenInfo, { TextTransparency = 1 }):Play()
+			TweenService:Create(SubLabel, FadeTweenInfo, { TextTransparency = 1 }):Play()
+			TweenService:Create(ProgressTrack, FadeTweenInfo, { BackgroundTransparency = 1 }):Play()
+			TweenService:Create(ProgressFill, FadeTweenInfo, { BackgroundTransparency = 1 }):Play()
+			TweenService:Create(SplashScale, FadeTweenInfo, { Scale = 1.05 }):Play()
+
+			task.wait(FadeTime)
+			SplashFrame:Destroy()
+
+			Window.Root.Visible = true
+			local WindowScale = New("UIScale", {
+				Scale = 0.95,
+				Parent = Window.Root,
+			})
+
+			local OriginalPos = Window.Root.Position
+			Window.Root.Position = OriginalPos + UDim2.fromOffset(0, 15)
+
+			local WindowTweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+			TweenService:Create(WindowScale, WindowTweenInfo, { Scale = 1 }):Play()
+			TweenService:Create(Window.Root, WindowTweenInfo, { Position = OriginalPos }):Play()
+
+			task.wait(0.4)
+			WindowScale:Destroy()
+		end)
+	end
+
 	return Window
 end
 

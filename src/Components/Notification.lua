@@ -112,10 +112,10 @@ function Notification:New(Config)
 
 	local Type = Config.Type
 	local TypeColors = {
-		Success = Color3.fromRGB(46, 204, 113),
-		Warning = Color3.fromRGB(241, 196, 15),
-		Error = Color3.fromRGB(231, 76, 60),
-		Info = Color3.fromRGB(52, 152, 219),
+		Success = Color3.fromRGB(110, 210, 145),
+		Warning = Color3.fromRGB(245, 185, 95),
+		Error = Color3.fromRGB(245, 115, 115),
+		Info = Creator.GetThemeProperty("Accent"),
 	}
 	local TypeIcons = {
 		Success = "check-circle",
@@ -139,20 +139,6 @@ function Notification:New(Config)
 	local TextWidthOffset = HasIcon and -66 or -12
 	local HolderXOffset = HasIcon and 42 or 14
 	local HolderWidthOffset = HasIcon and -56 or -28
-
-	if Type and TypeColors[Type] then
-		New("Frame", {
-			Size = UDim2.new(0, 4, 1, 0),
-			Position = UDim2.new(0, 0, 0, 0),
-			BackgroundColor3 = TypeColors[Type],
-			BorderSizePixel = 0,
-			Parent = NewNotification.AcrylicPaint.Frame,
-		}, {
-			New("UICorner", {
-				CornerRadius = UDim.new(0, 4),
-			}),
-		})
-	end
 
 	NewNotification.Title = New("TextLabel", {
 		Position = UDim2.new(0, TitleXOffset, 0, 17),

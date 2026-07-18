@@ -82,6 +82,7 @@ return function(Config)
 		TabWidth = Config.TabWidth or 160,
 		Compact = false,
 		DrawerOpen = false,
+		SidebarCollapsed = false,
 		Position = UDim2.fromOffset(InitialPosition.X, InitialPosition.Y),
 	}
 
@@ -114,7 +115,8 @@ return function(Config)
 	})
 
 	Window.TabHolder = New("ScrollingFrame", {
-		Size = UDim2.fromScale(1, 1),
+		Size = UDim2.new(1, 0, 1, -36),
+		Position = UDim2.fromOffset(0, 36),
 		BackgroundTransparency = 1,
 		ScrollBarImageTransparency = 1,
 		ScrollBarThickness = 0,
@@ -150,6 +152,32 @@ return function(Config)
 		Window.TabHolder,
 		Selector,
 	})
+
+	local CollapseButton = New("TextButton", {
+		Size = UDim2.new(1, -8, 0, 28),
+		Position = UDim2.fromOffset(4, 4),
+		BackgroundTransparency = 1,
+		Text = "☰",
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+		TextSize = 16,
+		Parent = TabFrame,
+		ThemeTag = {
+			TextColor3 = "Text",
+		}
+	}, {
+		New("UICorner", { CornerRadius = UDim.new(0, 5) }),
+	})
+
+	Creator.AddSignal(CollapseButton.MouseEnter, function()
+		CollapseButton.BackgroundTransparency = 0.9
+	end, CollapseButton)
+	Creator.AddSignal(CollapseButton.MouseLeave, function()
+		CollapseButton.BackgroundTransparency = 1
+	end, CollapseButton)
+	Creator.AddSignal(CollapseButton.Activated, function()
+		Window.SidebarCollapsed = not Window.SidebarCollapsed
+		ApplyResponsiveLayout()
+	end, CollapseButton)
 
 	Window.TabDisplay = New("TextLabel", {
 		RichText = true,
@@ -698,16 +726,17 @@ return function(Config)
 		end
 
 		local Compact = WindowWidth < 520 or GetViewportSize().X < 640
-		local EffectiveTabWidth = Compact and 0 or math.min(
+		local EffectiveTabWidth = Compact and 0 or (Window.SidebarCollapsed and 48 or math.min(
 			Window.ExpandedTabWidth,
 			math.max(80, WindowWidth - 280)
-		)
+		))
 		local DrawerWidth = math.min(240, math.max(180, WindowWidth * 0.72))
 		Window.Compact = Compact
 		Window.TabWidth = EffectiveTabWidth
 		Window.DrawerWidth = DrawerWidth
 
 		if Compact then
+			CollapseButton.Visible = false
 			TabFrame.Size = UDim2.new(0, DrawerWidth, 1, -66)
 			TabFrame.Position = UDim2.fromOffset(Window.DrawerOpen and 12 or -DrawerWidth - 12, 54)
 			TabFrame.BackgroundTransparency = 0.05
@@ -720,6 +749,7 @@ return function(Config)
 			NavigationButton.Visible = not Window.DrawerOpen
 			DrawerScrim.Visible = Window.DrawerOpen
 		else
+			CollapseButton.Visible = true
 			Window.DrawerOpen = false
 			TabFrame.Size = UDim2.new(0, EffectiveTabWidth, 1, -66)
 			TabFrame.Position = UDim2.fromOffset(12, 54)
@@ -739,7 +769,7 @@ return function(Config)
 		ResizeStartFrame.Size = UDim2.fromOffset(ResizeHandleSize, ResizeHandleSize)
 		ResizeStartFrame.Position = UDim2.new(1, -ResizeHandleSize, 1, -ResizeHandleSize)
 		ResizeStartFrame.Visible = not Window.Maximized
-		TabModule:SetCompact(false)
+		TabModule:SetCompact(Compact or Window.SidebarCollapsed == true)
 	end
 
 	local function UpdateViewport()

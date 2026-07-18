@@ -41,13 +41,19 @@ end
 
 function TabModule:ApplyTabLayout(Tab)
 	local Compact = self.Compact
-	Tab.Icon.Visible = Tab.HasIcon
+	local Library = require(Root)
 
-	if Compact and Tab.HasIcon then
+	if Compact then
+		Tab.Icon.Visible = true
+		if not Tab.HasIcon then
+			Tab.Icon.Image = Library:GetIcon("box")
+		end
 		Tab.Label.Visible = false
 		Tab.Icon.AnchorPoint = Vector2.new(0.5, 0.5)
 		Tab.Icon.Position = UDim2.fromScale(0.5, 0.5)
 	else
+		Tab.Icon.Visible = Tab.HasIcon
+		Tab.Icon.Image = Tab.IconId or ""
 		Tab.Label.Visible = true
 		Tab.Label.Position = Tab.HasIcon and UDim2.new(0, 30, 0.5, 0) or UDim2.new(0, 12, 0.5, 0)
 		Tab.Label.Size = UDim2.new(1, Tab.HasIcon and -36 or -24, 1, 0)
@@ -85,6 +91,7 @@ function TabModule:New(Title, Icon, Parent)
 	if Icon == "" then
 		Icon = nil
 	end
+	Tab.IconId = Icon
 	Tab.HasIcon = Icon ~= nil
 
 	Tab.Label = New("TextLabel", {

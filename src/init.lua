@@ -507,8 +507,246 @@ function Library:ToggleTransparency(Value)
 	end
 end
 
-function Library:Notify(Config)
-	return NotificationModule:New(Config)
+function Library:CreateKeySystem(Config)
+	assert(Config.OnVerified, "KeySystem - Missing OnVerified callback")
+
+	local KeySystemGui = New("ScreenGui", {
+		Name = "FluentKeySystem",
+		IgnoreGuiInset = false,
+		ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets,
+		SafeAreaCompatibility = Enum.SafeAreaCompatibility.None,
+		ClipToDeviceSafeArea = true,
+		Parent = RunService:IsStudio() and LocalPlayer.PlayerGui or game:GetService("CoreGui"),
+	})
+	ProtectGui(KeySystemGui)
+
+	local KeySystemFrame = New("Frame", {
+		Size = UDim2.fromOffset(340, 200),
+		Position = UDim2.fromScale(0.5, 0.5),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		BackgroundTransparency = 1,
+		Parent = KeySystemGui,
+	})
+
+	local KeySystemPaint = Acrylic.AcrylicPaint()
+	KeySystemPaint.AddParent(KeySystemFrame)
+
+	New("UICorner", {
+		CornerRadius = UDim.new(0, 8),
+		Parent = KeySystemPaint.Frame,
+	})
+
+	local UIStroke = New("UIStroke", {
+		Color = Color3.fromRGB(80, 80, 80),
+		Transparency = 0.5,
+		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		Parent = KeySystemPaint.Frame,
+	})
+
+	local Title = New("TextLabel", {
+		Size = UDim2.new(1, -24, 0, 24),
+		Position = UDim2.fromOffset(12, 16),
+		Text = Config.Title or "Key System",
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
+		TextSize = 18,
+		TextColor3 = Color3.fromRGB(255, 255, 255),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		BackgroundTransparency = 1,
+		Parent = KeySystemPaint.Frame,
+	})
+
+	local SubTitle = New("TextLabel", {
+		Size = UDim2.new(1, -24, 0, 18),
+		Position = UDim2.fromOffset(12, 38),
+		Text = Config.SubTitle or "Verification Required",
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
+		TextSize = 12,
+		TextColor3 = Color3.fromRGB(180, 180, 180),
+		TextXAlignment = Enum.TextXAlignment.Left,
+		BackgroundTransparency = 1,
+		Parent = KeySystemPaint.Frame,
+	})
+
+	local TextboxFrame = New("Frame", {
+		Size = UDim2.new(1, -24, 0, 36),
+		Position = UDim2.fromOffset(12, 75),
+		BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+		BackgroundTransparency = 0.3,
+		Parent = KeySystemPaint.Frame,
+	}, {
+		New("UICorner", { CornerRadius = UDim.new(0, 6) }),
+		New("UIStroke", {
+			Color = Color3.fromRGB(60, 60, 60),
+			Transparency = 0.5,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		})
+	})
+
+	local Input = New("TextBox", {
+		Size = UDim2.new(1, -20, 1, 0),
+		Position = UDim2.fromOffset(10, 0),
+		BackgroundTransparency = 1,
+		Text = "",
+		PlaceholderText = "Enter key here...",
+		PlaceholderColor3 = Color3.fromRGB(120, 120, 120),
+		TextColor3 = Color3.fromRGB(240, 240, 240),
+		TextSize = 13,
+		ClearTextOnFocus = false,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+		Parent = TextboxFrame,
+	})
+
+	local GetKeyButton = New("TextButton", {
+		Size = UDim2.new(0.5, -16, 0, 36),
+		Position = UDim2.new(0, 12, 1, -48),
+		BackgroundColor3 = Color3.fromRGB(45, 45, 45),
+		BackgroundTransparency = 0.3,
+		Text = "Get Key",
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+		TextColor3 = Color3.fromRGB(230, 230, 230),
+		TextSize = 13,
+		Parent = KeySystemPaint.Frame,
+	}, {
+		New("UICorner", { CornerRadius = UDim.new(0, 6) }),
+		New("UIStroke", {
+			Color = Color3.fromRGB(70, 70, 70),
+			Transparency = 0.6,
+			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+		})
+	})
+
+	local VerifyButton = New("TextButton", {
+		Size = UDim2.new(0.5, -16, 0, 36),
+		Position = UDim2.new(0.5, 4, 1, -48),
+		BackgroundColor3 = Creator.GetThemeProperty("Accent") or Color3.fromRGB(96, 205, 255),
+		BackgroundTransparency = 0,
+		Text = "Verify Key",
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal),
+		TextColor3 = Color3.fromRGB(0, 0, 0),
+		TextSize = 13,
+		Parent = KeySystemPaint.Frame,
+	}, {
+		New("UICorner", { CornerRadius = UDim.new(0, 6) })
+	})
+
+	local TweenService = game:GetService("TweenService")
+	
+	GetKeyButton.MouseEnter:Connect(function()
+		TweenService:Create(GetKeyButton, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(55, 55, 55) }):Play()
+	end)
+	GetKeyButton.MouseLeave:Connect(function()
+		TweenService:Create(GetKeyButton, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(45, 45, 45) }):Play()
+	end)
+
+	VerifyButton.MouseEnter:Connect(function()
+		TweenService:Create(VerifyButton, TweenInfo.new(0.15), { BackgroundTransparency = 0.15 }):Play()
+	end)
+	VerifyButton.MouseLeave:Connect(function()
+		TweenService:Create(VerifyButton, TweenInfo.new(0.15), { BackgroundTransparency = 0 }):Play()
+	end)
+
+	local function Verify()
+		local Entered = Input.Text
+		local Correct = false
+
+		if Config.Callback then
+			local success, res = pcall(Config.Callback, Entered)
+			if success and res == true then
+				Correct = true
+			end
+		elseif Config.Key and Entered == Config.Key then
+			Correct = true
+		elseif Config.Keys then
+			for _, k in ipairs(Config.Keys) do
+				if Entered == tostring(k) then
+					Correct = true
+					break
+				end
+			end
+		end
+
+		if Correct then
+			Library:Notify({
+				Title = "Key System",
+				Content = "Access granted! Loading UI...",
+				Type = "Success",
+				Duration = 3
+			})
+
+			local FadeTweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+			TweenService:Create(Title, FadeTweenInfo, { TextTransparency = 1 }):Play()
+			TweenService:Create(SubTitle, FadeTweenInfo, { TextTransparency = 1 }):Play()
+			TweenService:Create(TextboxFrame, FadeTweenInfo, { BackgroundTransparency = 1 }):Play()
+			TweenService:Create(Input, FadeTweenInfo, { TextTransparency = 1 }):Play()
+			TweenService:Create(GetKeyButton, FadeTweenInfo, { BackgroundTransparency = 1, TextTransparency = 1 }):Play()
+			TweenService:Create(VerifyButton, FadeTweenInfo, { BackgroundTransparency = 1, TextTransparency = 1 }):Play()
+			TweenService:Create(UIStroke, FadeTweenInfo, { Transparency = 1 }):Play()
+
+			local FrameScale = New("UIScale", { Scale = 1, Parent = KeySystemPaint.Frame })
+			TweenService:Create(FrameScale, FadeTweenInfo, { Scale = 1.05 }):Play()
+
+			task.wait(0.3)
+			KeySystemGui:Destroy()
+			
+			task.spawn(Config.OnVerified)
+		else
+			Library:Notify({
+				Title = "Key System",
+				Content = "Invalid key entered. Please try again.",
+				Type = "Error",
+				Duration = 3
+			})
+
+			local Stroke = TextboxFrame:FindFirstChildOfClass("UIStroke")
+			if Stroke then
+				Stroke.Color = Color3.fromRGB(245, 115, 115)
+				task.spawn(function()
+					task.wait(1.5)
+					if Stroke.Parent then
+						Stroke.Color = Color3.fromRGB(60, 60, 60)
+					end
+				end)
+			end
+
+			local OriginalPos = KeySystemFrame.Position
+			task.spawn(function()
+				for i = 1, 6 do
+					local OffsetX = (i % 2 == 0) and 8 or -8
+					KeySystemFrame.Position = OriginalPos + UDim2.fromOffset(OffsetX, 0)
+					task.wait(0.04)
+				end
+				KeySystemFrame.Position = OriginalPos
+			end)
+		end
+	end
+
+	VerifyButton.Activated:Connect(Verify)
+	
+	GetKeyButton.Activated:Connect(function()
+		if Config.GetKeyLink then
+			setclipboard(Config.GetKeyLink)
+			Library:Notify({
+				Title = "Key System",
+				Content = "Key link copied to clipboard!",
+				Type = "Success",
+				Duration = 3
+			})
+		else
+			Library:Notify({
+				Title = "Key System",
+				Content = "No key link provided.",
+				Type = "Warning",
+				Duration = 3
+			})
+		end
+	end)
+
+	Input.FocusLost:Connect(function(EnterPressed)
+		if EnterPressed then
+			Verify()
+		end
+	end)
 end
 
 if getgenv then

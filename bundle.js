@@ -89,32 +89,6 @@ return Themes
 
 // Helper to resolve requires inside a module file
 function processModule(name, code) {
-    // 1. require(Root.X) -> require("X")
-    code = code.replace(/require\(\s*Root\.([a-zA-Z0-9_]+)\s*\)/g, 'require("$1")');
-    // 2. require(Components.X) -> require("Components.$1")
-    code = code.replace(/require\(\s*Components\.([a-zA-Z0-9_]+)\s*\)/g, 'require("Components.$1")');
-    // 3. require(script.Parent.Parent.Creator) -> require("Creator")
-    code = code.replace(/require\(\s*script\.Parent\.Parent\.Creator\s*\)/g, 'require("Creator")');
-    // 4. require(script.Parent.Parent.Packages.Flipper) -> require("Packages.Flipper")
-    code = code.replace(/require\(\s*script\.Parent\.Parent\.Packages\.Flipper\s*\)/g, 'require("Packages.Flipper")');
-    // 5. require(script.Parent.CreateAcrylic) -> require("Acrylic.CreateAcrylic")
-    code = code.replace(/require\(\s*script\.Parent\.CreateAcrylic\s*\)/g, 'require("Acrylic.CreateAcrylic")');
-    // 6. require(script.Parent.AcrylicPaint) -> require("Acrylic.AcrylicPaint")
-    code = code.replace(/require\(\s*script\.Parent\.AcrylicPaint\s*\)/g, 'require("Acrylic.AcrylicPaint")');
-    // 7. require(script.Parent.Utils) -> require("Acrylic.Utils")
-    code = code.replace(/require\(\s*script\.Parent\.Utils\s*\)/g, 'require("Acrylic.Utils")');
-    // 8. require(script.Parent.Assets) -> require("Components.Assets")
-    code = code.replace(/require\(\s*script\.Parent\.Assets\s*\)/g, 'require("Components.Assets")');
-    
-    // Flipper sub-requires
-    if (name.startsWith('Packages.Flipper')) {
-        code = code.replace(/require\(\s*script\.Parent\.([a-zA-Z0-9_-]+)\s*\)/g, 'require("Packages.Flipper.$1")');
-    }
-    // Acrylic sub-requires
-    if (name.startsWith('Acrylic')) {
-        code = code.replace(/require\(\s*script\.Parent\.([a-zA-Z0-9_-]+)\s*\)/g, 'require("Acrylic.$1")');
-    }
-
     return code;
 }
 

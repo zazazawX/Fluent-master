@@ -50,9 +50,9 @@ end
 
 register("Acrylic.AcrylicBlur", function()
 local script = create_mock_script("Acrylic.AcrylicBlur")
-local Creator = require("Creator")
-local createAcrylic = require("Acrylic.CreateAcrylic")
-local viewportPointToWorld, getOffset = unpack(require("Acrylic.Utils"))
+local Creator = require(script.Parent.Parent.Creator)
+local createAcrylic = require(script.Parent.CreateAcrylic)
+local viewportPointToWorld, getOffset = unpack(require(script.Parent.Utils))
 
 local BlurFolder = Instance.new("Folder", game:GetService("Workspace").CurrentCamera)
 
@@ -175,8 +175,8 @@ end)
 
 register("Acrylic.AcrylicPaint", function()
 local script = create_mock_script("Acrylic.AcrylicPaint")
-local Creator = require("Creator")
-local AcrylicBlur = require("Acrylic.AcrylicBlur")
+local Creator = require(script.Parent.Parent.Creator)
+local AcrylicBlur = require(script.Parent.AcrylicBlur)
 
 local New = Creator.New
 
@@ -284,7 +284,7 @@ return function(props)
 
 	local Blur
 
-	if require("Acrylic.Parent").UseAcrylic then
+	if require(script.Parent.Parent).UseAcrylic then
 		Blur = AcrylicBlur()
 		Blur.Frame.Parent = AcrylicPaint.Frame
 		AcrylicPaint.Model = Blur.Model
@@ -300,7 +300,7 @@ end)
 register("Acrylic.CreateAcrylic", function()
 local script = create_mock_script("Acrylic.CreateAcrylic")
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 
 local function createAcrylic()
 	local Part = Creator.New("Part", {
@@ -417,7 +417,7 @@ end)
 register("Components.Button", function()
 local script = create_mock_script("Components.Button")
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 local New = Creator.New
 
 return function(Theme, Parent, DialogCheck)
@@ -501,7 +501,7 @@ end)
 register("Components.Dialog", function()
 local script = create_mock_script("Components.Dialog")
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 local GuiService = game:GetService("GuiService")
 
 local New = Creator.New
@@ -769,7 +769,7 @@ end)
 register("Components.Element", function()
 local script = create_mock_script("Components.Element")
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 local New = Creator.New
 
 return function(Title, Desc, Parent, Hover, TooltipText)
@@ -1004,8 +1004,8 @@ register("Components.Notification", function()
 local script = create_mock_script("Components.Notification")
 local Root = script.Parent.Parent
 local Flipper = require(Root.Packages.Flipper)
-local Creator = require("Creator")
-local Acrylic = require("Acrylic")
+local Creator = require(Root.Creator)
+local Acrylic = require(Root.Acrylic)
 
 local Spring = Creator.MotionGoal
 local Instant = Flipper.Instant.new
@@ -1196,7 +1196,7 @@ function Notification:New(Config)
 		BackgroundTransparency = 1,
 	}, {
 		New("ImageLabel", {
-			Image = require("Components.Assets").Close,
+			Image = require(script.Parent.Assets).Close,
 			Size = UDim2.fromOffset(16, 16),
 			Position = UDim2.fromScale(0.5, 0.5),
 			AnchorPoint = Vector2.new(0.5, 0.5),
@@ -1352,7 +1352,7 @@ end)
 register("Components.Section", function()
 local script = create_mock_script("Components.Section")
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 local Flipper = require(Root.Packages.Flipper)
 local Spring = Creator.MotionGoal
 local New = Creator.New
@@ -1450,7 +1450,7 @@ register("Components.Tab", function()
 local script = create_mock_script("Components.Tab")
 local Root = script.Parent.Parent
 local Flipper = require(Root.Packages.Flipper)
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 
 local New = Creator.New
 local Spring = Creator.MotionGoal
@@ -1656,7 +1656,7 @@ function TabModule:New(Title, Icon, Parent)
 	function Tab:AddSection(SectionTitle)
 		local Section = { Type = "Section" }
 
-		local SectionFrame = require("Components.Section")(SectionTitle, Tab.Container)
+		local SectionFrame = require(Components.Section)(SectionTitle, Tab.Container)
 		Section.Container = SectionFrame.Container
 		Section.ScrollFrame = Tab.Container
 
@@ -1737,7 +1737,7 @@ local script = create_mock_script("Components.Textbox")
 local TextService = game:GetService("TextService")
 local Root = script.Parent.Parent
 local Flipper = require(Root.Packages.Flipper)
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 local New = Creator.New
 
 return function(Parent, Acrylic)
@@ -1860,8 +1860,8 @@ end)
 register("Components.TitleBar", function()
 local script = create_mock_script("Components.TitleBar")
 local Root = script.Parent.Parent
-local Assets = require("Components.Assets")
-local Creator = require("Creator")
+local Assets = require(script.Parent.Assets)
+local Creator = require(Root.Creator)
 local Flipper = require(Root.Packages.Flipper)
 
 local New = Creator.New
@@ -2030,9 +2030,9 @@ local Camera = game:GetService("Workspace").CurrentCamera
 
 local Root = script.Parent.Parent
 local Flipper = require(Root.Packages.Flipper)
-local Creator = require("Creator")
-local Acrylic = require("Acrylic")
-local Assets = require("Components.Assets")
+local Creator = require(Root.Creator)
+local Acrylic = require(Root.Acrylic)
+local Assets = require(script.Parent.Assets)
 local Components = script.Parent
 
 local Spring = Creator.MotionGoal
@@ -2616,7 +2616,7 @@ return function(Config)
 		end
 	end
 
-	local DialogModule = require("Components.Dialog"):Init(Window)
+	local DialogModule = require(Components.Dialog):Init(Window)
 	function Window:Dialog(Config)
 		local Dialog = DialogModule:Create()
 		Dialog.Title.Text = Config.Title
@@ -2660,7 +2660,7 @@ return function(Config)
 		Dialog:Open()
 	end
 
-	local TabModule = require("Components.Tab"):Init(Window)
+	local TabModule = require(Components.Tab):Init(Window)
 
 	function Window:SetNavigationDrawer(Open)
 		Open = Open == true and Window.Compact
@@ -2883,7 +2883,7 @@ return function(Config)
 	end
 	Creator.AddSignal(Window.Root:GetPropertyChangedSignal("AbsoluteSize"), ApplyResponsiveLayout, Window.Root)
 	function Window:AddThemeCustomizer()
-		local Themes = require("Themes")
+		local Themes = require(Root.Themes)
 		if not Themes.Custom then
 			local CustomTheme = {}
 			for k, v in pairs(Themes.Dark) do
@@ -2978,7 +2978,7 @@ end)
 register("Creator", function()
 local script = create_mock_script("Creator")
 local Root = script.Parent
-local Themes = require("Themes")
+local Themes = require(Root.Themes)
 local Flipper = require(Root.Packages.Flipper)
 local TweenService = game:GetService("TweenService")
 
@@ -3246,7 +3246,7 @@ end)
 register("Elements.Button", function()
 local script = create_mock_script("Elements.Button")
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 
 local New = Creator.New
 local Components = Root.Components
@@ -3259,7 +3259,7 @@ function Element:New(Config)
 	assert(Config.Title, "Button - Missing Title")
 	Config.Callback = Config.Callback or function() end
 
-	local ButtonFrame = require("Components.Element")(Config.Title, Config.Description, self.Container, true, Config.Tooltip)
+	local ButtonFrame = require(Components.Element)(Config.Title, Config.Description, self.Container, true, Config.Tooltip)
 
 	local ButtonIco = New("ImageLabel", {
 		Image = "rbxassetid://10709791437",
@@ -3295,7 +3295,7 @@ local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
 
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 
 local New = Creator.New
 local Components = Root.Components
@@ -3326,7 +3326,7 @@ function Element:New(Idx, Config)
 
 	Colorpicker:SetHSVFromRGB(Colorpicker.Value)
 
-	local ColorpickerFrame = require("Components.Element")(Config.Title, Config.Description, self.Container, true, Config.Tooltip)
+	local ColorpickerFrame = require(Components.Element)(Config.Title, Config.Description, self.Container, true, Config.Tooltip)
 
 	Colorpicker.SetTitle = ColorpickerFrame.SetTitle
 	Colorpicker.SetDesc = ColorpickerFrame.SetDesc
@@ -3358,7 +3358,7 @@ function Element:New(Idx, Config)
 	})
 
 	local function CreateColorDialog()
-		local Dialog = require("Components.Dialog"):Create()
+		local Dialog = require(Components.Dialog):Create()
 		Dialog.Title.Text = Colorpicker.Title
 		Dialog.Root.Size = UDim2.fromOffset(430, 330)
 		Dialog:FitToWindow()
@@ -3367,7 +3367,7 @@ function Element:New(Idx, Config)
 		local Transparency = Colorpicker.Transparency
 
 		local function CreateInput()
-			local Box = require("Components.Textbox")()
+			local Box = require(Components.Textbox)()
 			Box.Frame.Parent = Dialog.Root
 			Box.Frame.Size = UDim2.new(0, 90, 0, 32)
 
@@ -3841,7 +3841,7 @@ end)
 register("Elements.CopyButton", function()
 local script = create_mock_script("Elements.CopyButton")
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 local New = Creator.New
 local Components = Root.Components
 
@@ -3854,7 +3854,7 @@ function Element:New(Config)
 	Config.Value = Config.Value or ""
 	Config.Callback = Config.Callback or function() end
 
-	local ButtonFrame = require("Components.Element")(Config.Title, Config.Description or "", self.Container, true)
+	local ButtonFrame = require(Components.Element)(Config.Title, Config.Description or "", self.Container, true)
 
 	local ButtonIco = New("ImageLabel", {
 		Image = "rbxassetid://10709798574", -- lucide-clipboard-copy
@@ -3902,7 +3902,7 @@ local GuiService = game:GetService("GuiService")
 local Camera = game:GetService("Workspace").CurrentCamera
 
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 local Flipper = require(Root.Packages.Flipper)
 
 local New = Creator.New
@@ -3956,7 +3956,7 @@ function Element:New(Idx, Config)
 
 	Dropdown.Value = NormalizeValue(Config.Default)
 
-	local DropdownFrame = require("Components.Element")(Config.Title, Config.Description, self.Container, false, Config.Tooltip)
+	local DropdownFrame = require(Components.Element)(Config.Title, Config.Description, self.Container, false, Config.Tooltip)
 	DropdownFrame.Frame.Selectable = false
 	DropdownFrame.DescLabel.Size = UDim2.new(1, -170, 0, 14)
 
@@ -4066,7 +4066,7 @@ function Element:New(Idx, Config)
 	})
 
 	if Searchable then
-		SearchBox = require("Components.Textbox")(DropdownHolderFrame, true)
+		SearchBox = require(Components.Textbox)(DropdownHolderFrame, true)
 		SearchBox.Frame.Position = UDim2.new(0, 5, 0, 5)
 		SearchBox.Frame.Size = UDim2.new(1, -10, 0, 26)
 		SearchBox.Input.PlaceholderText = "Search..."
@@ -4552,7 +4552,7 @@ register("Elements.Image", function()
 local script = create_mock_script("Elements.Image")
 local Root = script.Parent.Parent
 local Components = Root.Components
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 local New = Creator.New
 
 local ImageElement = {}
@@ -4563,7 +4563,7 @@ function ImageElement:New(Config)
 	assert(Config.Title, "Image - Missing Title")
 	assert(Config.Image, "Image - Missing Image ID")
 
-	local ImageFrame = require("Components.Element")(Config.Title, Config.Description or "", self.Container, false)
+	local ImageFrame = require(Components.Element)(Config.Title, Config.Description or "", self.Container, false)
 	ImageFrame.Frame.Selectable = false
 
 	local ImageSize = Config.Size or UDim2.fromOffset(64, 64)
@@ -4626,7 +4626,7 @@ end)
 register("Elements.Input", function()
 local script = create_mock_script("Elements.Input")
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 
 local New = Creator.New
 local AddSignal = Creator.AddSignal
@@ -4649,13 +4649,13 @@ function Element:New(Idx, Config)
 		Type = "Input",
 	}
 
-	local InputFrame = require("Components.Element")(Config.Title, Config.Description, self.Container, false, Config.Tooltip)
+	local InputFrame = require(Components.Element)(Config.Title, Config.Description, self.Container, false, Config.Tooltip)
 	InputFrame.Frame.Selectable = false
 
 	Input.SetTitle = InputFrame.SetTitle
 	Input.SetDesc = InputFrame.SetDesc
 
-	local Textbox = require("Components.Textbox")(InputFrame.Frame, true)
+	local Textbox = require(Components.Textbox)(InputFrame.Frame, true)
 	Textbox.Frame.Position = UDim2.new(1, -10, 0.5, 0)
 	Textbox.Frame.AnchorPoint = Vector2.new(1, 0.5)
 	Textbox.Frame.Size = UDim2.fromOffset(160, 30)
@@ -4718,7 +4718,7 @@ local script = create_mock_script("Elements.Keybind")
 local UserInputService = game:GetService("UserInputService")
 
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 
 local New = Creator.New
 local Components = Root.Components
@@ -4745,7 +4745,7 @@ function Element:New(Idx, Config)
 	local PickBeganConnection
 	local PickEndedConnection
 
-	local KeybindFrame = require("Components.Element")(Config.Title, Config.Description, self.Container, true, Config.Tooltip)
+	local KeybindFrame = require(Components.Element)(Config.Title, Config.Description, self.Container, true, Config.Tooltip)
 
 	Keybind.SetTitle = KeybindFrame.SetTitle
 	Keybind.SetDesc = KeybindFrame.SetDesc
@@ -4947,7 +4947,7 @@ local script = create_mock_script("Elements.Paragraph")
 local Root = script.Parent.Parent
 local Components = Root.Components
 local Flipper = require(Root.Packages.Flipper)
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 
 local Paragraph = {}
 Paragraph.__index = Paragraph
@@ -4957,7 +4957,7 @@ function Paragraph:New(Config)
 	assert(Config.Title, "Paragraph - Missing Title")
 	Config.Content = Config.Content or ""
 
-	local Paragraph = require("Components.Element")(Config.Title, Config.Content, Paragraph.Container, false)
+	local Paragraph = require(Components.Element)(Config.Title, Config.Content, Paragraph.Container, false)
 	Paragraph.Frame.Selectable = false
 	Paragraph.Frame.BackgroundTransparency = 0.92
 	Paragraph.Border.Transparency = 0.6
@@ -4974,7 +4974,7 @@ local script = create_mock_script("Elements.RangeSlider")
 local UserInputService = game:GetService("UserInputService")
 local GuiService = game:GetService("GuiService")
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 
 local New = Creator.New
 local Components = Root.Components
@@ -5015,7 +5015,7 @@ function Element:New(Idx, Config)
 	local DragInput
 	local SliderInteraction = {}
 
-	local SliderFrame = require("Components.Element")(Config.Title, Config.Description, self.Container, false)
+	local SliderFrame = require(Components.Element)(Config.Title, Config.Description, self.Container, false)
 	SliderFrame.Frame.Selectable = false
 	SliderFrame.DescLabel.Size = UDim2.new(1, -170, 0, 14)
 
@@ -5256,7 +5256,7 @@ local script = create_mock_script("Elements.Slider")
 local UserInputService = game:GetService("UserInputService")
 local GuiService = game:GetService("GuiService")
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 
 local New = Creator.New
 local Components = Root.Components
@@ -5296,7 +5296,7 @@ function Element:New(Idx, Config)
 	local DragInput
 	local SliderInteraction = {}
 
-	local SliderFrame = require("Components.Element")(Config.Title, Config.Description, self.Container, false, Config.Tooltip)
+	local SliderFrame = require(Components.Element)(Config.Title, Config.Description, self.Container, false, Config.Tooltip)
 	SliderFrame.Frame.Selectable = false
 	SliderFrame.DescLabel.Size = UDim2.new(1, -170, 0, 14)
 
@@ -5495,7 +5495,7 @@ end)
 register("Elements.Toggle", function()
 local script = create_mock_script("Elements.Toggle")
 local Root = script.Parent.Parent
-local Creator = require("Creator")
+local Creator = require(Root.Creator)
 
 local New = Creator.New
 local Components = Root.Components
@@ -5514,7 +5514,7 @@ function Element:New(Idx, Config)
 		Type = "Toggle",
 	}
 
-	local ToggleFrame = require("Components.Element")(Config.Title, Config.Description, self.Container, true, Config.Tooltip)
+	local ToggleFrame = require(Components.Element)(Config.Title, Config.Description, self.Container, true, Config.Tooltip)
 	ToggleFrame.DescLabel.Size = UDim2.new(1, -54, 0, 14)
 
 	Toggle.SetTitle = ToggleFrame.SetTitle
@@ -6435,13 +6435,13 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
 local Root = script
-local Creator = require("Creator")
-local ElementsTable = require("Elements")
-local Acrylic = require("Acrylic")
+local Creator = require(Root.Creator)
+local ElementsTable = require(Root.Elements)
+local Acrylic = require(Root.Acrylic)
 local Components = Root.Components
-local NotificationModule = require("Components.Notification")
-local Themes = require("Themes")
-local ThemeValidator = require("ThemeValidator")
+local NotificationModule = require(Components.Notification)
+local Themes = require(Root.Themes)
+local ThemeValidator = require(Root.ThemeValidator)
 
 local New = Creator.New
 
@@ -6488,7 +6488,7 @@ local Library = {
 	ActiveDialog = nil,
 	Options = {},
 	Themes = Themes.Names,
-	Types = require("Types"),
+	Types = require(Root.Types),
 	ThemeContrastReports = ThemeValidator.ValidateAll(Themes, 4.5),
 
 	Window = nil,
@@ -6578,7 +6578,7 @@ function Library:Round(Number, Factor)
 	return math.round(Number * Multiplier) / Multiplier
 end
 
-local Icons = require("Icons").assets
+local Icons = require(Root.Icons).assets
 function Library:GetIcon(Name)
 	if Name ~= nil and Icons["lucide-" .. Name] then
 		return Icons["lucide-" .. Name]
@@ -6619,7 +6619,7 @@ function Library:CreateWindow(Config)
 		Acrylic.init()
 	end
 
-	local Window = require("Components.Window")({
+	local Window = require(Components.Window)({
 		Parent = Layers.Window,
 		Size = Config.Size,
 		Title = Config.Title,
@@ -6718,7 +6718,7 @@ register("Packages.Flipper.BaseMotor", function()
 local script = create_mock_script("Packages.Flipper.BaseMotor")
 local RunService = game:GetService("RunService")
 
-local Signal = require("Packages.Flipper.Signal")
+local Signal = require(script.Parent.Signal)
 
 local noop = function() end
 
@@ -6779,7 +6779,7 @@ local script = create_mock_script("Packages.Flipper.BaseMotor.spec")
 return function()
 	local RunService = game:GetService("RunService")
 
-	local BaseMotor = require("Packages.Flipper.BaseMotor")
+	local BaseMotor = require(script.Parent.BaseMotor)
 
 	describe("connection management", function()
 		local motor = BaseMotor.new()
@@ -6820,10 +6820,10 @@ end)
 
 register("Packages.Flipper.GroupMotor", function()
 local script = create_mock_script("Packages.Flipper.GroupMotor")
-local BaseMotor = require("Packages.Flipper.BaseMotor")
-local SingleMotor = require("Packages.Flipper.SingleMotor")
+local BaseMotor = require(script.Parent.BaseMotor)
+local SingleMotor = require(script.Parent.SingleMotor)
 
-local isMotor = require("Packages.Flipper.isMotor")
+local isMotor = require(script.Parent.isMotor)
 
 local GroupMotor = setmetatable({}, BaseMotor)
 GroupMotor.__index = GroupMotor
@@ -6936,10 +6936,10 @@ end)
 register("Packages.Flipper.GroupMotor.spec", function()
 local script = create_mock_script("Packages.Flipper.GroupMotor.spec")
 return function()
-	local GroupMotor = require("Packages.Flipper.GroupMotor")
+	local GroupMotor = require(script.Parent.GroupMotor)
 
-	local Instant = require("Packages.Flipper.Instant")
-	local Spring = require("Packages.Flipper.Spring")
+	local Instant = require(script.Parent.Instant)
+	local Spring = require(script.Parent.Spring)
 
 	it("should complete when all child motors are complete", function()
 		local motor = GroupMotor.new({
@@ -7063,7 +7063,7 @@ end)
 register("Packages.Flipper.Instant.spec", function()
 local script = create_mock_script("Packages.Flipper.Instant.spec")
 return function()
-	local Instant = require("Packages.Flipper.Instant")
+	local Instant = require(script.Parent.Instant)
 
 	it("should return a completed state with the provided value", function()
 		local goal = Instant.new(1.23)
@@ -7094,10 +7094,10 @@ end)
 register("Packages.Flipper.isMotor.spec", function()
 local script = create_mock_script("Packages.Flipper.isMotor.spec")
 return function()
-	local isMotor = require("Packages.Flipper.isMotor")
+	local isMotor = require(script.Parent.isMotor)
 
-	local SingleMotor = require("Packages.Flipper.SingleMotor")
-	local GroupMotor = require("Packages.Flipper.GroupMotor")
+	local SingleMotor = require(script.Parent.SingleMotor)
+	local GroupMotor = require(script.Parent.GroupMotor)
 
 	local singleMotor = SingleMotor.new(0)
 	local groupMotor = GroupMotor.new({})
@@ -7166,8 +7166,8 @@ end)
 register("Packages.Flipper.Linear.spec", function()
 local script = create_mock_script("Packages.Flipper.Linear.spec")
 return function()
-	local SingleMotor = require("Packages.Flipper.SingleMotor")
-	local Linear = require("Packages.Flipper.Linear")
+	local SingleMotor = require(script.Parent.SingleMotor)
+	local Linear = require(script.Parent.Linear)
 
 	describe("completed state", function()
 		local motor = SingleMotor.new(0, false)
@@ -7291,7 +7291,7 @@ end)
 register("Packages.Flipper.Signal.spec", function()
 local script = create_mock_script("Packages.Flipper.Signal.spec")
 return function()
-	local Signal = require("Packages.Flipper.Signal")
+	local Signal = require(script.Parent.Signal)
 
 	it("should invoke all connections, instantly", function()
 		local signal = Signal.new()
@@ -7344,7 +7344,7 @@ end)
 
 register("Packages.Flipper.SingleMotor", function()
 local script = create_mock_script("Packages.Flipper.SingleMotor")
-local BaseMotor = require("Packages.Flipper.BaseMotor")
+local BaseMotor = require(script.Parent.BaseMotor)
 
 local SingleMotor = setmetatable({}, BaseMotor)
 SingleMotor.__index = SingleMotor
@@ -7417,8 +7417,8 @@ end)
 register("Packages.Flipper.SingleMotor.spec", function()
 local script = create_mock_script("Packages.Flipper.SingleMotor.spec")
 return function()
-	local SingleMotor = require("Packages.Flipper.SingleMotor")
-	local Instant = require("Packages.Flipper.Instant")
+	local SingleMotor = require(script.Parent.SingleMotor)
+	local Instant = require(script.Parent.Instant)
 
 	it("should assign new state on step", function()
 		local motor = SingleMotor.new(0, false)
@@ -7579,8 +7579,8 @@ end)
 register("Packages.Flipper.Spring.spec", function()
 local script = create_mock_script("Packages.Flipper.Spring.spec")
 return function()
-	local SingleMotor = require("Packages.Flipper.SingleMotor")
-	local Spring = require("Packages.Flipper.Spring")
+	local SingleMotor = require(script.Parent.SingleMotor)
+	local Spring = require(script.Parent.Spring)
 
 	describe("completed state", function()
 		local motor = SingleMotor.new(0, false)

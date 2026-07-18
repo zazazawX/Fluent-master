@@ -517,13 +517,14 @@ function Dialog:Init(Window)
 end
 
 function Dialog:Create()
+	local window = self.Window or require(Root).Window
 	local NewDialog = {
 		Buttons = 0,
 		TargetScale = 1,
 		Closing = false,
 		Closed = false,
 		ButtonFrames = {},
-		Window = self.Window,
+		Window = window,
 	}
 
 	NewDialog.TintFrame = New("TextButton", {
@@ -533,7 +534,7 @@ function Dialog:Create()
 		BackgroundTransparency = 1,
 		Selectable = false,
 		ZIndex = 50,
-		Parent = self.Window.Root,
+		Parent = window.Root,
 	}, {
 		New("UICorner", {
 			CornerRadius = UDim.new(0, 8),
@@ -661,7 +662,7 @@ function Dialog:Create()
 	Creator.AddSignal(NewDialog.Root:GetPropertyChangedSignal("Size"), function()
 		NewDialog:FitToWindow()
 	end, NewDialog.TintFrame)
-	Creator.AddSignal(self.Window.Root:GetPropertyChangedSignal("AbsoluteSize"), function()
+	Creator.AddSignal(window.Root:GetPropertyChangedSignal("AbsoluteSize"), function()
 		NewDialog:FitToWindow()
 	end, NewDialog.TintFrame)
 	NewDialog:FitToWindow()

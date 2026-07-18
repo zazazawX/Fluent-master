@@ -146,6 +146,7 @@ local KeySystem = {} do
 		})
 
 		local KeySystemPaint = Acrylic.AcrylicPaint()
+		KeySystemPaint.Frame.Parent = KeySystemFrame
 		if KeySystemPaint.AddParent then
 			KeySystemPaint.AddParent(KeySystemFrame)
 		end

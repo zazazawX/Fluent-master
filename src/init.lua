@@ -284,7 +284,7 @@ function Library:CreateWindow(Config)
 			local TweenService = game:GetService("TweenService")
 			for _, step in ipairs(Steps) do
 				SubLabel.Text = step.text
-				local Tween = TweenService:Create(ProgressFill, TweenInfo.new(0.3, Enum.EasingStyle.OutQuad), { Size = UDim2.fromScale(step.val, 1) })
+				local Tween = TweenService:Create(ProgressFill, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Size = UDim2.fromScale(step.val, 1) })
 				Tween:Play()
 				task.wait(0.35)
 			end

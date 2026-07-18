@@ -188,21 +188,21 @@ local KeySystem = {} do
 		local Overlay = New("Frame", {
 			Size = UDim2.fromScale(1, 1),
 			BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-			BackgroundTransparency = Config.OverlayTransparency or 0.35,
+			BackgroundTransparency = Config.OverlayTransparency or 0.55,
 			BorderSizePixel = 0,
 			Parent = KeySystemGui,
 		})
 
 		local KeySystemFrame = New("Frame", {
-			Size = UDim2.new(0.9, 0, 0, 390),
+			Size = UDim2.new(0.9, 0, 0, 250),
 			Position = UDim2.fromScale(0.5, 0.5),
 			AnchorPoint = Vector2.new(0.5, 0.5),
 			BackgroundTransparency = 1,
 			Parent = Overlay,
 		})
 		New("UISizeConstraint", {
-			MinSize = Vector2.new(300, 360),
-			MaxSize = Vector2.new(420, 390),
+			MinSize = Vector2.new(300, 240),
+			MaxSize = Vector2.new(420, 250),
 			Parent = KeySystemFrame,
 		})
 		New("ImageLabel", {
@@ -220,9 +220,6 @@ local KeySystem = {} do
 
 		local KeySystemPaint = Acrylic.AcrylicPaint()
 		KeySystemPaint.Frame.Parent = KeySystemFrame
-		KeySystemPaint.Frame.BackgroundTransparency = 0.08
-		local PaintBackground = KeySystemPaint.Frame:FindFirstChild("Background")
-		if PaintBackground then PaintBackground.BackgroundTransparency = 0.08 end
 		if KeySystemPaint.AddParent then
 			KeySystemPaint.AddParent(KeySystemFrame)
 		end
@@ -233,56 +230,50 @@ local KeySystem = {} do
 		})
 
 		local UIStroke = New("UIStroke", {
-			Color = Color3.fromRGB(80, 80, 80),
 			Transparency = 0.5,
 			ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+			ThemeTag = { Color = "AcrylicBorder" },
 			Parent = KeySystemPaint.Frame,
 		})
 
-		local LockIcon = New("TextLabel", {
-			Size = UDim2.fromOffset(44, 44),
-			Position = UDim2.new(0.5, -22, 0, 22),
-			Text = "🔐",
-			TextSize = 28,
-			BackgroundTransparency = 1,
-			Parent = KeySystemPaint.Frame,
-		})
+		local TitleBarLine = New("Frame", { Size = UDim2.new(1, 0, 0, 1), Position = UDim2.fromOffset(0, 42), BackgroundTransparency = 0.5, ThemeTag = { BackgroundColor3 = "TitleBarLine" }, Parent = KeySystemPaint.Frame })
 		local Title = New("TextLabel", {
-			Size = UDim2.new(1, -56, 0, 26),
-			Position = UDim2.fromOffset(28, 70),
+			Size = UDim2.new(0.5, -16, 0, 42),
+			Position = UDim2.fromOffset(16, 0),
 			Text = Config.Title or "Key System",
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal),
-			TextSize = 18,
-			TextColor3 = Color3.fromRGB(255, 255, 255),
-			TextXAlignment = Enum.TextXAlignment.Center,
+			TextSize = 12,
+			TextXAlignment = Enum.TextXAlignment.Left,
 			BackgroundTransparency = 1,
+			ThemeTag = { TextColor3 = "Text" },
 			Parent = KeySystemPaint.Frame,
 		})
 
 		local SubTitle = New("TextLabel", {
-			Size = UDim2.new(1, -56, 0, 18),
-			Position = UDim2.fromOffset(28, 99),
+			Size = UDim2.new(0.5, -52, 0, 42),
+			Position = UDim2.new(0.5, -12, 0, 0),
 			Text = Config.SubTitle or "Verification Required",
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal),
 			TextSize = 12,
-			TextColor3 = Color3.fromRGB(180, 180, 180),
-			TextXAlignment = Enum.TextXAlignment.Center,
+			TextTransparency = 0.4,
+			TextXAlignment = Enum.TextXAlignment.Left,
 			BackgroundTransparency = 1,
+			ThemeTag = { TextColor3 = "Text" },
 			Parent = KeySystemPaint.Frame,
 		})
 
 		local TextboxFrame = New("Frame", {
 			Size = UDim2.new(1, -48, 0, 46),
-			Position = UDim2.fromOffset(24, 132),
-			BackgroundColor3 = Color3.fromRGB(35, 35, 35),
-			BackgroundTransparency = 0.05,
+			Position = UDim2.fromOffset(24, 64),
+			BackgroundTransparency = 0.15,
+			ThemeTag = { BackgroundColor3 = "DialogInput" },
 			Parent = KeySystemPaint.Frame,
 		}, {
 			New("UICorner", { CornerRadius = UDim.new(0, 6) }),
 			New("UIStroke", {
-				Color = Color3.fromRGB(60, 60, 60),
 				Transparency = 0.5,
 				ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+				ThemeTag = { Color = "DialogInputLine" },
 			})
 		})
 
@@ -293,29 +284,29 @@ local KeySystem = {} do
 			Text = "",
 			PlaceholderText = "Enter key here...",
 			PlaceholderColor3 = Color3.fromRGB(120, 120, 120),
-			TextColor3 = Color3.fromRGB(240, 240, 240),
 			TextTransparency = 1,
 			TextSize = 13,
 			ClearTextOnFocus = false,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+			ThemeTag = { TextColor3 = "Text", PlaceholderColor3 = "SubText" },
 			Parent = TextboxFrame,
 		})
-		local MaskLabel = New("TextLabel", { Size = UDim2.new(1, -54, 1, 0), Position = UDim2.fromOffset(10, 0), BackgroundTransparency = 1, Text = "", TextColor3 = Color3.fromRGB(240, 240, 240), TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), Parent = TextboxFrame })
-		local RevealButton = New("TextButton", { Size = UDim2.fromOffset(42, 42), Position = UDim2.new(1, -44, 0, 2), BackgroundTransparency = 1, Text = "SHOW", TextSize = 9, TextColor3 = Color3.fromRGB(170, 170, 170), Parent = TextboxFrame })
-		local StatusLabel = New("TextLabel", { Size = UDim2.new(1, -48, 0, 20), Position = UDim2.fromOffset(24, 184), BackgroundTransparency = 1, Text = "", TextSize = 12, TextColor3 = Color3.fromRGB(180, 180, 180), TextXAlignment = Enum.TextXAlignment.Left, Parent = KeySystemPaint.Frame })
-		local VerifyButton = New("TextButton", { Size = UDim2.new(1, -48, 0, 44), Position = UDim2.fromOffset(24, 216), BackgroundColor3 = Creator.GetThemeProperty("Accent") or Color3.fromRGB(96, 205, 255), Text = "Verify Key", TextColor3 = Color3.fromRGB(0, 0, 0), TextSize = 14, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold, Enum.FontStyle.Normal), Parent = KeySystemPaint.Frame }, { New("UICorner", { CornerRadius = UDim.new(0, 7) }) })
-		local Spinner = New("TextLabel", { Size = UDim2.fromOffset(24, 24), Position = UDim2.new(0.5, -70, 0, 226), BackgroundTransparency = 1, Text = "◌", TextSize = 20, TextColor3 = Color3.fromRGB(0, 0, 0), Visible = false, Parent = KeySystemPaint.Frame })
-		local GetKeyButton = New("TextButton", { Size = UDim2.new(1, -48, 0, 24), Position = UDim2.fromOffset(24, 273), BackgroundTransparency = 1, Text = "Don't have a key? Get Key", TextSize = 12, TextColor3 = Color3.fromRGB(96, 205, 255), Parent = KeySystemPaint.Frame })
-		local DiscordButton = Config.Discord and New("TextButton", { Size = UDim2.new(1, -48, 0, 22), Position = UDim2.fromOffset(24, 299), BackgroundTransparency = 1, Text = "Join Discord", TextSize = 12, TextColor3 = Color3.fromRGB(170, 170, 170), Parent = KeySystemPaint.Frame }) or nil
-		local CloseButton = New("TextButton", { Size = UDim2.fromOffset(32, 32), Position = UDim2.new(1, -42, 0, 10), BackgroundTransparency = 1, Text = "×", TextSize = 25, TextColor3 = Color3.fromRGB(190, 190, 190), Parent = KeySystemPaint.Frame })
-		local ReopenButton = New("TextButton", { Size = UDim2.fromOffset(48, 48), Position = UDim2.new(1, -64, 1, -64), BackgroundColor3 = Color3.fromRGB(28, 30, 35), Text = "🔐", TextSize = 20, Visible = false, Parent = KeySystemGui }, { New("UICorner", { CornerRadius = UDim.new(1, 0) }), New("UIStroke", { Color = Color3.fromRGB(80, 80, 80), Transparency = 0.35 }) })
+		local MaskLabel = New("TextLabel", { Size = UDim2.new(1, -54, 1, 0), Position = UDim2.fromOffset(10, 0), BackgroundTransparency = 1, Text = "", TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), ThemeTag = { TextColor3 = "Text" }, Parent = TextboxFrame })
+		local RevealButton = New("TextButton", { Size = UDim2.fromOffset(42, 42), Position = UDim2.new(1, -44, 0, 2), BackgroundTransparency = 1, Text = "SHOW", TextSize = 9, ThemeTag = { TextColor3 = "SubText" }, Parent = TextboxFrame })
+		local StatusLabel = New("TextLabel", { Size = UDim2.new(1, -48, 0, 18), Position = UDim2.fromOffset(24, 113), BackgroundTransparency = 1, Text = "", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, ThemeTag = { TextColor3 = "SubText" }, Parent = KeySystemPaint.Frame })
+		local VerifyButton = New("TextButton", { Size = UDim2.new(1, -48, 0, 36), Position = UDim2.fromOffset(24, 137), BackgroundTransparency = 0.1, Text = "Verify Key", TextSize = 13, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), ThemeTag = { BackgroundColor3 = "Accent", TextColor3 = "AcrylicMain" }, Parent = KeySystemPaint.Frame }, { New("UICorner", { CornerRadius = UDim.new(0, 6) }) })
+		local Spinner = New("TextLabel", { Size = UDim2.fromOffset(18, 18), Position = UDim2.new(0.5, -62, 0, 146), BackgroundTransparency = 1, Text = "|", TextSize = 15, Visible = false, ThemeTag = { TextColor3 = "AcrylicMain" }, Parent = KeySystemPaint.Frame })
+		local GetKeyButton = New("TextButton", { Size = UDim2.new(0.5, -24, 0, 24), Position = UDim2.fromOffset(24, 183), BackgroundTransparency = 1, Text = "Get Key", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Left, ThemeTag = { TextColor3 = "Accent" }, Parent = KeySystemPaint.Frame })
+		local DiscordButton = Config.Discord and New("TextButton", { Size = UDim2.new(0.5, -24, 0, 24), Position = UDim2.new(0.5, 0, 0, 183), BackgroundTransparency = 1, Text = "Discord", TextSize = 11, TextXAlignment = Enum.TextXAlignment.Right, ThemeTag = { TextColor3 = "SubText" }, Parent = KeySystemPaint.Frame }) or nil
+		local CloseButton = New("TextButton", { Size = UDim2.fromOffset(34, 34), Position = UDim2.new(1, -38, 0, 4), BackgroundTransparency = 1, Text = "X", TextSize = 12, ThemeTag = { TextColor3 = "Text", BackgroundColor3 = "Text" }, Parent = KeySystemPaint.Frame }, { New("UICorner", { CornerRadius = UDim.new(0, 7) }) })
+		local ReopenButton = New("TextButton", { Size = UDim2.fromOffset(54, 34), Position = UDim2.new(1, -70, 1, -50), BackgroundTransparency = 0.08, Text = "KEY", TextSize = 11, Visible = false, ThemeTag = { BackgroundColor3 = "AcrylicMain", TextColor3 = "Text" }, Parent = KeySystemGui }, { New("UICorner", { CornerRadius = UDim.new(0, 7) }), New("UIStroke", { Transparency = 0.5, ThemeTag = { Color = "TitleBarLine" } }) })
 
 		local TweenService = game:GetService("TweenService")
 		local KeyVisible = false
 		local SpinnerTween = TweenService:Create(Spinner, TweenInfo.new(0.7, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1), { Rotation = 360 })
 		local function UpdateMaskedText()
-			MaskLabel.Text = KeyVisible and "" or string.rep("•", #Input.Text)
+			MaskLabel.Text = KeyVisible and "" or string.rep("*", #Input.Text)
 		end
 		Input:GetPropertyChangedSignal("Text"):Connect(UpdateMaskedText)
 		RevealButton.Activated:Connect(function()
@@ -334,12 +325,6 @@ local KeySystem = {} do
 		end)
 
 		if DiscordButton then
-			DiscordButton.MouseEnter:Connect(function()
-				TweenService:Create(DiscordButton, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(55, 55, 55) }):Play()
-			end)
-			DiscordButton.MouseLeave:Connect(function()
-				TweenService:Create(DiscordButton, TweenInfo.new(0.15), { BackgroundColor3 = Color3.fromRGB(45, 45, 45) }):Play()
-			end)
 			DiscordButton.Activated:Connect(function()
 				if setclipboard then
 					setclipboard(Config.Discord)
@@ -387,8 +372,8 @@ local KeySystem = {} do
 					StatusLabel.Text = "Too many attempts. Try again in " .. tostring(TimeLeft) .. "s"
 					StatusLabel.TextColor3 = Color3.fromRGB(245, 115, 115)
 					VerifyButton.Text = "Locked (" .. tostring(TimeLeft) .. "s)"
-					VerifyButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-					VerifyButton.TextColor3 = Color3.fromRGB(150, 150, 150)
+					VerifyButton.BackgroundColor3 = Creator.GetThemeProperty("DialogButton") or Color3.fromRGB(45, 45, 45)
+					VerifyButton.TextColor3 = Creator.GetThemeProperty("SubText") or Color3.fromRGB(170, 170, 170)
 					task.wait(1)
 					TimeLeft = TimeLeft - 1
 				end
@@ -397,7 +382,7 @@ local KeySystem = {} do
 				SetInputEnabled(true)
 				VerifyButton.Text = "Verify Key"
 				VerifyButton.BackgroundColor3 = Creator.GetThemeProperty("Accent") or Color3.fromRGB(96, 205, 255)
-				VerifyButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+				VerifyButton.TextColor3 = Creator.GetThemeProperty("AcrylicMain") or Color3.fromRGB(40, 40, 40)
 				StatusLabel.Text = ""
 			end)
 		end
@@ -460,8 +445,8 @@ local KeySystem = {} do
 			StatusLabel.TextColor3 = Color3.fromRGB(170, 170, 170)
 			Spinner.Visible = true
 			SpinnerTween:Play()
-			VerifyButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-			VerifyButton.TextColor3 = Color3.fromRGB(150, 150, 150)
+			VerifyButton.BackgroundColor3 = Creator.GetThemeProperty("DialogButton") or Color3.fromRGB(45, 45, 45)
+			VerifyButton.TextColor3 = Creator.GetThemeProperty("SubText") or Color3.fromRGB(170, 170, 170)
 
 			task.spawn(function()
 				local Correct = VerifyKey(Entered)
@@ -511,7 +496,7 @@ local KeySystem = {} do
 					SetInputEnabled(true)
 					VerifyButton.Text = "Verify Key"
 					VerifyButton.BackgroundColor3 = Creator.GetThemeProperty("Accent") or Color3.fromRGB(96, 205, 255)
-					VerifyButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+					VerifyButton.TextColor3 = Creator.GetThemeProperty("AcrylicMain") or Color3.fromRGB(40, 40, 40)
 					StatusLabel.Text = "Invalid key. Please try again."
 					StatusLabel.TextColor3 = Color3.fromRGB(245, 115, 115)
 
@@ -521,7 +506,7 @@ local KeySystem = {} do
 						task.spawn(function()
 							task.wait(1.5)
 							if Stroke.Parent then
-								Stroke.Color = Color3.fromRGB(60, 60, 60)
+								Stroke.Color = Creator.GetThemeProperty("DialogInputLine") or Color3.fromRGB(160, 160, 160)
 							end
 						end)
 					end

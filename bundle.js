@@ -124,11 +124,30 @@ let bundle = `
 local modules = {}
 local loaded = {}
 
+local function create_mock_script(path)
+    local mock
+    mock = setmetatable({}, {
+        __index = function(self, key)
+            if key == "Parent" then
+                return self
+            end
+            local newPath = path == "" and key or (path .. "." .. key)
+            return create_mock_script(newPath)
+        end,
+        __tostring = function(self)
+            return path
+        end
+    })
+    return mock
+end
+local script = create_mock_script("")
+
 local function register(name, func)
     modules[name] = func
 end
 
 local function require(name)
+    name = tostring(name)
     if loaded[name] then
         return loaded[name]
     end

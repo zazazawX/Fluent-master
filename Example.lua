@@ -1,6 +1,9 @@
-local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/zazazawX/Fluent-master/main/dist/main.lua"))()
-local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/zazazawX/Fluent-master/main/Addons/SaveManager.lua"))()
-local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/zazazawX/Fluent-master/main/Addons/InterfaceManager.lua"))()
+local Fluent = loadstring(game:HttpGet("https://raw.githubusercontent.com/zazazawX/Fluent-master/main/dist/main.lua?v=" .. tostring(math.random(1, 100000))))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/zazazawX/Fluent-master/main/Addons/SaveManager.lua?v=" .. tostring(math.random(1, 100000))))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/zazazawX/Fluent-master/main/Addons/InterfaceManager.lua?v=" .. tostring(math.random(1, 100000))))()
+local KeySystem = loadstring(game:HttpGet("https://raw.githubusercontent.com/zazazawX/Fluent-master/main/Addons/KeySystem.lua?v=" .. tostring(math.random(1, 100000))))()
+
+KeySystem:SetLibrary(Fluent)
 
 local EnableKeySystem = false -- Set to true to test the advanced Key System!
 
@@ -298,7 +301,7 @@ SaveManager:BuildConfigSection(Tabs.Settings)
 end
 
 if EnableKeySystem then
-    Fluent:CreateKeySystem({
+    KeySystem:CreateKeySystem({
         Title = "Fluent Key System",
         SubTitle = "Verification Required",
         GetKeyLink = "https://linkvertise.com/example",

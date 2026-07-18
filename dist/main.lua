@@ -6730,7 +6730,7 @@ local New = Creator.New
 
 local ProtectGui = protectgui or (syn and syn.protect_gui) or function() end
 local GUI = New("ScreenGui", {
-	Name = "Fluent",
+	Name = "Core X",
 	IgnoreGuiInset = false,
 	ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets,
 	SafeAreaCompatibility = Enum.SafeAreaCompatibility.None,
@@ -7233,7 +7233,7 @@ function Library:CreateKeySystem(Config)
 	end
 
 	local KeySystemGui = New("ScreenGui", {
-		Name = "FluentKeySystem",
+		Name = "CoreXKeySystem",
 		IgnoreGuiInset = false,
 		ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets,
 		SafeAreaCompatibility = Enum.SafeAreaCompatibility.None,
@@ -7475,6 +7475,7 @@ end
 
 if getgenv then
 	getgenv().Fluent = Library
+	getgenv().CoreX = Library
 end
 
 return Library

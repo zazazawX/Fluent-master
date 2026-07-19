@@ -11,6 +11,13 @@ local KeySystem = {} do
 	end
 
 	local PandaAuthV4Clients = {}
+	local function GetInjectedPandaAuthV4Client(Config)
+		local Environment = getgenv and getgenv() or _G
+		local Client = Config.Client or Environment.PandaAuthV4
+		if type(Client) == "table" and type(Client.Validate) == "function" then return Client end
+		return nil
+	end
+
 	local function GetPelindaClient(Config)
 		local Client = Config.Client or Pelinda
 		if type(Client) == "table" and type(Client.Init) == "function" then return Client end
@@ -130,10 +137,24 @@ local KeySystem = {} do
 		end,
 
 		PandaAuthV4 = function(Key, Config)
+			local VaultClient = GetInjectedPandaAuthV4Client(Config)
+			if VaultClient then
+				local Method = (Config.Premium == true or Config.RequirePremium == true) and VaultClient.Validate_Premium or VaultClient.Validate
+				if type(Method) ~= "function" then return false end
+				local ValidateSuccess, Result = pcall(Method, Key)
+				if not ValidateSuccess then return false end
+				if type(Result) == "table" then return Result.success == true end
+				return Result == true
+			end
+
 			local Client = GetPandaAuthV4Client(Config)
 			if not Client then return false end
 
-			local ValidateSuccess, Result = pcall(Client.validate, Key)
+			local Method = Client.validate
+			if (Config.Premium == true or Config.RequirePremium == true) and type(Client.validatePremium) == "function" then
+				Method = Client.validatePremium
+			end
+			local ValidateSuccess, Result = pcall(Method, Key)
 			if not ValidateSuccess then return false end
 			if type(Result) == "boolean" then return Result end
 			if type(Result) ~= "table" or Result.success ~= true then return false end
@@ -675,13 +696,23 @@ local KeySystem = {} do
 	GetKeyButton.Activated:Connect(function()
 		local KeyLink = Config.GetKeyLink
 		if not KeyLink and Config.Preset == "PandaAuthV4" then
-			local Client = GetPandaAuthV4Client(Config.PresetConfig or {})
-			if Client and type(Client.getKeyUrl) == "function" then
-				local LinkSuccess, GeneratedLink = pcall(Client.getKeyUrl)
+			local PandaConfig = Config.PresetConfig or {}
+			local Client = GetInjectedPandaAuthV4Client(PandaConfig)
+			local GetLinkMethod = Client and (Client.GetKeyUrl or Client.GetKeyLink or Client.getKeyUrl)
+			if type(GetLinkMethod) == "function" then
+				local LinkSuccess, GeneratedLink = pcall(GetLinkMethod)
 				if LinkSuccess and type(GeneratedLink) == "string" then
-					local PandaConfig = Config.PresetConfig or {}
-					local GetKeyBaseUrl = PandaConfig.GetKeyBaseUrl or "https://ads.pandauth.com"
-					KeyLink = GeneratedLink:gsub("__PUSL_GETKEY_BASE__", GetKeyBaseUrl)
+					KeyLink = GeneratedLink
+				end
+			end
+			if not KeyLink then
+				Client = GetPandaAuthV4Client(PandaConfig)
+				if Client and type(Client.getKeyUrl) == "function" then
+					local LinkSuccess, GeneratedLink = pcall(Client.getKeyUrl)
+					if LinkSuccess and type(GeneratedLink) == "string" then
+						local GetKeyBaseUrl = PandaConfig.GetKeyBaseUrl or "https://ads.pandauth.com"
+						KeyLink = GeneratedLink:gsub("__PUSL_GETKEY_BASE__", GetKeyBaseUrl)
+					end
 				end
 			end
 		end

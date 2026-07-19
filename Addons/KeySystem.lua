@@ -333,10 +333,10 @@ local KeySystem = {} do
 
 		local KeySystemGui = New("ScreenGui", {
 			Name = "CoreXKeySystem",
-			IgnoreGuiInset = false,
-			ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets,
+			IgnoreGuiInset = true,
+			ScreenInsets = Enum.ScreenInsets.None,
 			SafeAreaCompatibility = Enum.SafeAreaCompatibility.None,
-			ClipToDeviceSafeArea = true,
+			ClipToDeviceSafeArea = false,
 			Parent = RunService:IsStudio() and LocalPlayer.PlayerGui or game:GetService("CoreGui"),
 		})
 		ProtectGui(KeySystemGui)

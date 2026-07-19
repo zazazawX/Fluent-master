@@ -77,6 +77,25 @@ function StandalonePanel:CreatePanel(Config)
 			MaxSize = Config.MaxSize or Vector2.new(680, 450),
 		}),
 	})
+	local function MakeDraggable(Handle, Target)
+		local Dragging, DragInput, StartPointer, StartPosition
+		Creator.AddSignal(Handle.InputBegan, function(Input)
+			if Input.UserInputType ~= Enum.UserInputType.MouseButton1 and Input.UserInputType ~= Enum.UserInputType.Touch then return end
+			Dragging, DragInput = true, Input
+			StartPointer, StartPosition = Input.Position, Target.Position
+		end, Gui)
+		Creator.AddSignal(UserInputService.InputChanged, function(Input)
+			if not Dragging then return end
+			if Input.UserInputType ~= Enum.UserInputType.MouseMovement and Input.UserInputType ~= Enum.UserInputType.Touch then return end
+			local Delta = Input.Position - StartPointer
+			Target.Position = UDim2.new(StartPosition.X.Scale, StartPosition.X.Offset + Delta.X, StartPosition.Y.Scale, StartPosition.Y.Offset + Delta.Y)
+		end, Gui)
+		Creator.AddSignal(UserInputService.InputEnded, function(Input)
+			if Input == DragInput or Input.UserInputType == Enum.UserInputType.MouseButton1 then
+				Dragging, DragInput = false, nil
+			end
+		end, Gui)
+	end
 	New("ImageLabel", {
 		Size = UDim2.new(1, 70, 1, 70),
 		Position = UDim2.fromScale(0.5, 0.5),
@@ -215,6 +234,8 @@ function StandalonePanel:CreatePanel(Config)
 		CanvasSize = UDim2.new(),
 		Parent = Preview,
 	})
+	Header.Active = true
+	MakeDraggable(Header, Panel)
 
 	local PreviewText = New("TextLabel", {
 		Size = UDim2.new(1, -8, 0, 0),
@@ -259,10 +280,14 @@ function StandalonePanel:CreatePanel(Config)
 		ThemeTag = { BackgroundColor3 = "Dialog" },
 		Parent = Overlay,
 	}, {
-		New("UISizeConstraint", { MinSize = Vector2.new(320, 280), MaxSize = Vector2.new(430, 390) }),
+		New("UISizeConstraint", { MinSize = Vector2.new(260, 240), MaxSize = Vector2.new(430, 390) }),
 		New("UICorner", { CornerRadius = UDim.new(0, 8) }),
 		New("UIStroke", { Transparency = 0.4, ThemeTag = { Color = "DialogBorder" } }),
 	})
+	local HistoryDragArea = New("Frame", {
+		Size = UDim2.new(1, -110, 0, 46), BackgroundTransparency = 1, Active = true, ZIndex = 30, Parent = HistoryPanel,
+	})
+	MakeDraggable(HistoryDragArea, HistoryPanel)
 	New("TextLabel", {
 		Size = UDim2.new(1, -54, 0, 46), Position = UDim2.fromOffset(16, 0), BackgroundTransparency = 1,
 		Text = Config.HistoryTitle or "History", TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 31,
@@ -806,11 +831,15 @@ function StandalonePanel:CreatePanel(Config)
 	end, Gui)
 
 	function Controller:UpdateLayout()
-		-- Keep the panel centered even when an executor reports a viewport resize.
-		Panel.AnchorPoint = Vector2.new(0.5, 0.5)
-		Panel.Position = UDim2.fromScale(0.5, 0.5)
 		Preview.Visible = true
 		HistoryPanel.Visible = self.HistoryVisible
+		local ViewWidth = Overlay.AbsoluteSize.X
+		if ViewWidth > 0 and ViewWidth < 700 then
+			HistoryPanel.Size = UDim2.new(0.9, 0, 0.7, 0)
+			HistoryPanel.Position = UDim2.fromScale(0.5, 0.5)
+		else
+			HistoryPanel.Size = Config.HistorySize or UDim2.new(0.46, 0, 0.62, 0)
+		end
 		if Panel.AbsoluteSize.X < (Config.StackBreakpoint or 430) then
 			Form.Size = UDim2.new(1, 0, 0.48, -4)
 			Preview.Size = UDim2.new(1, 0, 0.52, -70)

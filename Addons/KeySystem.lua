@@ -288,10 +288,19 @@ local KeySystem = {} do
 		
 		assert(Config.OnVerified, "KeySystem - Missing OnVerified callback")
 
+		local PreviousUseAcrylic = Library.UseAcrylic == true
 		local UseAcrylic = Config.Acrylic ~= false
 		if UseAcrylic then
 			Library.UseAcrylic = true
 			Acrylic.init()
+		else
+			Library.UseAcrylic = false
+			if Acrylic.Disable then Acrylic.Disable() end
+		end
+		local function RestoreAcrylic()
+			Library.UseAcrylic = PreviousUseAcrylic
+			if Acrylic.Disable then Acrylic.Disable() end
+			if PreviousUseAcrylic and Acrylic.Enable then Acrylic.Enable() end
 		end
 
 		local SaveKey = Config.SaveKey
@@ -468,6 +477,7 @@ local KeySystem = {} do
 				ReopenButton.Visible = true
 			else
 				SpinnerTween:Cancel()
+				RestoreAcrylic()
 				KeySystemGui:Destroy()
 			end
 		end)
@@ -638,6 +648,7 @@ local KeySystem = {} do
 					TweenService:Create(FrameScale, FadeTweenInfo, { Scale = 1.05 }):Play()
 
 					task.wait(0.3)
+					RestoreAcrylic()
 					KeySystemGui:Destroy()
 					
 					task.spawn(Config.OnVerified)

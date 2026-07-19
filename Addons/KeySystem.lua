@@ -603,7 +603,11 @@ local KeySystem = {} do
 			local Client = GetPandaAuthV4Client(Config.PresetConfig or {})
 			if Client and type(Client.getKeyUrl) == "function" then
 				local LinkSuccess, GeneratedLink = pcall(Client.getKeyUrl)
-				if LinkSuccess then KeyLink = GeneratedLink end
+				if LinkSuccess and type(GeneratedLink) == "string" then
+					local PandaConfig = Config.PresetConfig or {}
+					local GetKeyBaseUrl = PandaConfig.GetKeyBaseUrl or "https://ads.pandauth.com"
+					KeyLink = GeneratedLink:gsub("__PUSL_GETKEY_BASE__", GetKeyBaseUrl)
+				end
 			end
 		end
 		if KeyLink then

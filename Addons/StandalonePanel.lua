@@ -341,7 +341,14 @@ function StandalonePanel:CreatePanel(Config)
 			ThemeTag = { TextColor3 = "Text", PlaceholderColor3 = "SubText" },
 			Parent = Holder,
 		})
-		local Indicator = New("Frame", { Size = UDim2.new(1, -4, 0, 1), Position = UDim2.new(0, 2, 1, -1), ThemeTag = { BackgroundColor3 = "DialogInputLine" }, Parent = Holder })
+		local Indicator = New("Frame", {
+			Size = UDim2.new(1, -4, 0, 1),
+			Position = UDim2.new(0, 2, 1, -1),
+			BackgroundTransparency = 0.5,
+			BorderSizePixel = 0,
+			ThemeTag = { BackgroundColor3 = "DialogInputLine" },
+			Parent = Holder,
+		})
 		Controller.Values[Field.Id] = Field.Default or ""
 		Controller.Inputs[Field.Id] = Input
 		Creator.AddSignal(Input:GetPropertyChangedSignal("Text"), function()
@@ -353,10 +360,14 @@ function StandalonePanel:CreatePanel(Config)
 		end, Gui)
 		Creator.AddSignal(Input.Focused, function()
 			Indicator.Size = UDim2.new(1, -2, 0, 2)
+			Indicator.Position = UDim2.new(0, 1, 1, -2)
+			Indicator.BackgroundTransparency = 0
 			Creator.OverrideTag(Indicator, { BackgroundColor3 = "Accent" })
 		end, Gui)
 		Creator.AddSignal(Input.FocusLost, function()
 			Indicator.Size = UDim2.new(1, -4, 0, 1)
+			Indicator.Position = UDim2.new(0, 2, 1, -1)
+			Indicator.BackgroundTransparency = 0.5
 			Creator.OverrideTag(Indicator, { BackgroundColor3 = "DialogInputLine" })
 		end, Gui)
 		AddError(Field)

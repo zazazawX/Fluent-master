@@ -47,7 +47,7 @@ Fluent must already be loaded because StandalonePanel reuses its theme, notifica
 | `InputHeight` | `32` | Height of single-line Input and Number fields. |
 | `InputWidthScale` | `0.82` | Input/Number/Multiline width relative to the form column. |
 | `InputWidthOffset` | `0` | Additional pixel adjustment to input width. |
-| `FormWidthScale` | `0.44` | Width of the form column; History uses the remaining width beside it. Clamped from `0.32` to `0.68`. |
+| `FormWidthScale` | `0.42` | Width of the form column; History and its Action button use the remaining width beside it. Clamped from `0.32` to `0.68`. |
 | `StackBreakpoint` | `430` | Panel width below which Form and History stack vertically for narrow screens. |
 | `PreviewTransparency` | `0.04` | Preview/history background transparency. |
 | `ShowHistory` | true | Initial visibility of the preview/history area. |
@@ -185,7 +185,7 @@ Validation runs before confirmation/submission. Every failure is displayed direc
 ## History tools
 
 - Header badge updates as `History (count)`.
-- On normal screens, History stays in a dedicated column beside the form and scrolls independently.
+- On normal screens, History stays in a dedicated column beside the form, scrolls independently, and owns the Action button below it.
 - On screens narrower than `StackBreakpoint`, History moves below the form.
 - Entries receive timestamps by default.
 - Clear removes all entries.

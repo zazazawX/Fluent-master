@@ -17,23 +17,28 @@ function StandalonePanel:CreatePanel(Config)
 	assert(type(Config.OnSubmit) == "function", "StandalonePanel - Missing OnSubmit callback")
 
 	local Library = self.Library
+	if Config.Theme then Library:SetTheme(Config.Theme) end
+	if Config.AccentColor then Library:SetAccentColor(Config.AccentColor) end
 	local Creator = Library.Creator
 	local New = Creator.New
 	local Acrylic = Library.Acrylic
 	local PreviousUseAcrylic = Library.UseAcrylic == true
-	local UseAcrylic = Config.Acrylic == true or (Config.Acrylic == nil and Library.UseAcrylic == true)
+	local UseAcrylic = Config.Acrylic == true
 	if UseAcrylic then
 		Library.UseAcrylic = true
 		if not PreviousUseAcrylic then Acrylic.init() end
 	end
+	Library.UseAcrylic = UseAcrylic
 	local Controller = {
 		Values = {},
 		Inputs = {},
 		Choices = {},
+		ChoiceStrokes = {},
 		ChoiceSelectors = {},
 		Logs = {},
 		Opened = true,
 		Submitting = false,
+		HistoryVisible = Config.ShowHistory ~= false,
 	}
 
 	local Gui = New("ScreenGui", {
@@ -112,7 +117,7 @@ function StandalonePanel:CreatePanel(Config)
 	})
 
 	local MetricLabel = New("TextLabel", {
-		Size = UDim2.new(0.4, -46, 1, 0),
+		Size = UDim2.new(0.4, -128, 1, 0),
 		Position = UDim2.new(0.6, 0, 0, 0),
 		BackgroundTransparency = 1,
 		Text = (Config.MetricTitle or "Total") .. ": " .. tostring(Config.Metric or 0),
@@ -131,6 +136,19 @@ function StandalonePanel:CreatePanel(Config)
 		TextSize = 13,
 		ThemeTag = { TextColor3 = "SubText" },
 		Parent = Header,
+	})
+	local HistoryButton = New("TextButton", {
+		Size = UDim2.fromOffset(74, 30),
+		Position = UDim2.new(1, -120, 0, 10),
+		BackgroundTransparency = Config.ShowHistory == false and 0.5 or 0.15,
+		Text = Config.HistoryButtonText or "History",
+		TextSize = 11,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+		ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "Text" },
+		Parent = Header,
+	}, {
+		New("UICorner", { CornerRadius = UDim.new(0, 5) }),
+		New("UIStroke", { Transparency = 0.65, ThemeTag = { Color = "DialogButtonBorder" } }),
 	})
 
 	local Body = New("Frame", {
@@ -255,27 +273,37 @@ function StandalonePanel:CreatePanel(Config)
 		})
 		Controller.Values[Field.Id] = Field.Default or Field.Values and Field.Values[1]
 		Controller.Choices[Field.Id] = {}
+		Controller.ChoiceStrokes[Field.Id] = {}
 		local function Select(Value)
 			Controller.Values[Field.Id] = Value
 			for ChoiceValue, Button in pairs(Controller.Choices[Field.Id]) do
-				Button.BackgroundTransparency = ChoiceValue == Value and 0.05 or 0.65
-				Creator.OverrideTag(Button, { BackgroundColor3 = "DialogButton", TextColor3 = ChoiceValue == Value and "Accent" or "SubText" })
+				local Selected = ChoiceValue == Value
+				Button.BackgroundTransparency = Selected and 0.02 or 0.18
+				Creator.OverrideTag(Button, { BackgroundColor3 = "DialogButton", TextColor3 = Selected and "Accent" or "Text" })
+				local Stroke = Controller.ChoiceStrokes[Field.Id][ChoiceValue]
+				if Stroke then
+					Stroke.Transparency = Selected and 0.1 or 0.55
+					Creator.OverrideTag(Stroke, { Color = Selected and "Accent" or "DialogButtonBorder" })
+				end
 			end
 			if Field.OnChanged then Library:SafeCallback(Field.OnChanged, Value, Controller) end
 		end
 		Controller.ChoiceSelectors[Field.Id] = Select
 		for _, Value in ipairs(Field.Values or {}) do
+			local Stroke = New("UIStroke", { Transparency = 0.55, ThemeTag = { Color = "DialogButtonBorder" } })
 			local Button = New("TextButton", {
 				Text = tostring(Value),
-				TextSize = 11,
-				BackgroundTransparency = 0.65,
-				ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "SubText" },
+				TextSize = 12,
+				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+				BackgroundTransparency = 0.18,
+				ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "Text" },
 				Parent = Holder,
 			}, {
 				New("UICorner", { CornerRadius = UDim.new(0, 4) }),
-				New("UIStroke", { Transparency = 0.7, ThemeTag = { Color = "DialogButtonBorder" } }),
+				Stroke,
 			})
 			Controller.Choices[Field.Id][Value] = Button
+			Controller.ChoiceStrokes[Field.Id][Value] = Stroke
 			Creator.AddSignal(Button.Activated, function() Select(Value) end, Gui)
 		end
 		Select(Controller.Values[Field.Id])
@@ -381,6 +409,11 @@ function StandalonePanel:CreatePanel(Config)
 		if Config.DestroyOnClose then Controller:Destroy() else Controller:Close() end
 		if Config.OnClose then Library:SafeCallback(Config.OnClose, Controller) end
 	end, Gui)
+	Creator.AddSignal(HistoryButton.Activated, function()
+		Controller.HistoryVisible = not Controller.HistoryVisible
+		HistoryButton.BackgroundTransparency = Controller.HistoryVisible and 0.15 or 0.5
+		Controller:UpdateLayout()
+	end, Gui)
 
 	Creator.AddSignal(UserInputService.InputBegan, function(Input)
 		if Controller.Opened and Config.CloseOnEscape ~= false and Input.KeyCode == Enum.KeyCode.Escape then
@@ -388,7 +421,12 @@ function StandalonePanel:CreatePanel(Config)
 		end
 	end, Gui)
 
-	local function UpdateLayout()
+	function Controller:UpdateLayout()
+		Preview.Visible = self.HistoryVisible
+		if not self.HistoryVisible then
+			Form.Size = UDim2.new(1, 0, 1, 0)
+			return
+		end
 		if Panel.AbsoluteSize.X < 520 then
 			Form.Size = UDim2.new(1, 0, 0.48, -4)
 			Preview.Size = UDim2.new(1, 0, 0.52, -4)
@@ -399,8 +437,8 @@ function StandalonePanel:CreatePanel(Config)
 			Preview.Position = UDim2.new(0.38, 6, 0, 0)
 		end
 	end
-	Creator.AddSignal(Panel:GetPropertyChangedSignal("AbsoluteSize"), UpdateLayout, Gui)
-	task.defer(UpdateLayout)
+	Creator.AddSignal(Panel:GetPropertyChangedSignal("AbsoluteSize"), function() Controller:UpdateLayout() end, Gui)
+	task.defer(function() Controller:UpdateLayout() end)
 
 	for Id, Value in pairs(Config.InitialValues or {}) do Controller:SetValue(Id, Value) end
 	return Controller

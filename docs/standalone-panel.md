@@ -33,7 +33,11 @@ Fluent must already be loaded because StandalonePanel reuses its theme, notifica
 | `SubmittingText` | `Working...` | Label while OnSubmit runs. |
 | `OverlayTransparency` | `0.78` | Full-viewport dark overlay transparency. |
 | `Overlay` | true | Set false to remove the dark full-screen scrim. |
-| `Acrylic` | follows Fluent | Uses Fluent AcrylicPaint/noise and enables blur when true. |
+| `Theme` | current Fluent theme | Applies a Fluent theme name before building the panel. |
+| `AccentColor` | current Fluent accent | Applies a Color3 accent before building the panel. |
+| `Acrylic` | `false` | Set true to enable Fluent Acrylic blur. It is off by default. |
+| `ShowHistory` | true | Initial visibility of the preview/history area. |
+| `HistoryButtonText` | `History` | Header toggle label beside the close button. |
 | `LogLimit` | `30` | Maximum lines kept by AppendLog. |
 | `CloseOnEscape` | true | Escape hides the panel. |
 | `DestroyOnClose` | false | Close button destroys instead of hiding. |
@@ -97,6 +101,7 @@ When Default is omitted, the first value is selected.
 | `Logs` | Current history lines. |
 | `Opened` | Current visible state. |
 | `Submitting` | Whether OnSubmit is running. |
+| `HistoryVisible` | Current preview/history visibility. The header History button toggles it. |
 | `SetValue(id, value)` | Updates an Input, Number, or Choice and its stored value. |
 | `SetMetric(value, title?)` | Updates top-right metric. |
 | `SetPreview(text, title?)` | Replaces preview text/title. |
@@ -106,6 +111,9 @@ When Default is omitted, the first value is selected.
 | `Open()` | Shows the existing ScreenGui. |
 | `Close()` | Hides without destroying. |
 | `Destroy()` | Permanently destroys the standalone UI. |
+| `UpdateLayout()` | Reapplies responsive and history visibility layout. |
+
+`Theme` and `AccentColor` use Fluent's theme APIs, so they also update other UI created by the same Fluent instance.
 
 See [`Examples/StandalonePanel.lua`](../Examples/StandalonePanel.lua) for a complete mail-style example.
 

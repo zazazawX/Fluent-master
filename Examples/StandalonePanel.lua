@@ -17,7 +17,9 @@ local Panel = StandalonePanel:CreatePanel({
     ActionText = "Dispatch Secure Mail",
     SubmittingText = "Dispatching...",
     OverlayTransparency = 0.72,
-    Acrylic = true,
+    Theme = "Dark",
+    AccentColor = Color3.fromRGB(96, 205, 255),
+    Acrylic = false, -- No screen blur
     CloseOnEscape = true,
     DestroyOnClose = false,
 
@@ -38,7 +40,7 @@ local Panel = StandalonePanel:CreatePanel({
         {
             Id = "Delivery",
             Type = "Choice",
-            Title = "Delivery method",
+            Title = "Category",
             Values = { "Private", "Public", "Secure", "Fast" },
             Default = "Secure",
         },

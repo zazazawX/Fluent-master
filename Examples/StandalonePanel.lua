@@ -20,6 +20,9 @@ local Panel = StandalonePanel:CreatePanel({
     Theme = "Dark",
     AccentColor = Color3.fromRGB(96, 205, 255),
     Acrylic = false, -- No screen blur
+    PanelTransparency = 0.02,
+    InputTransparency = 0.02,
+    InputBorderTransparency = 0.35,
     CloseOnEscape = true,
     DestroyOnClose = false,
 

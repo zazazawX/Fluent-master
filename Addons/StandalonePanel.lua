@@ -88,6 +88,10 @@ function StandalonePanel:CreatePanel(Config)
 	Library.UseAcrylic = PreviousUseAcrylic
 	Paint.Frame.Parent = Panel
 	if Paint.AddParent then Paint.AddParent(Panel) end
+	local PaintBackground = Paint.Frame:FindFirstChild("Background")
+	if PaintBackground and not UseAcrylic then
+		PaintBackground.BackgroundTransparency = Config.PanelTransparency or 0.02
+	end
 	New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Paint.Frame })
 	New("UIStroke", { Transparency = 0.5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, ThemeTag = { Color = "AcrylicBorder" }, Parent = Paint.Frame })
 	local Surface = Paint.Frame
@@ -172,12 +176,12 @@ function StandalonePanel:CreatePanel(Config)
 	local Preview = New("Frame", {
 		Size = UDim2.new(0.62, -6, 1, 0),
 		Position = UDim2.new(0.38, 6, 0, 0),
-		BackgroundTransparency = 0.15,
+		BackgroundTransparency = Config.PreviewTransparency or 0.04,
 		ThemeTag = { BackgroundColor3 = "DialogInput" },
 		Parent = Body,
 	}, {
 		New("UICorner", { CornerRadius = UDim.new(0, 6) }),
-		New("UIStroke", { Transparency = 0.65, ThemeTag = { Color = "DialogButtonBorder" } }),
+		New("UIStroke", { Transparency = 0.4, ThemeTag = { Color = "DialogButtonBorder" } }),
 	})
 
 	local PreviewTitle = New("TextLabel", {
@@ -211,10 +215,11 @@ function StandalonePanel:CreatePanel(Config)
 			Size = UDim2.new(1, -4, 0, 18),
 			BackgroundTransparency = 1,
 			Text = Text,
-			TextSize = 11,
+			TextSize = 12,
+			TextTransparency = 0.12,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
-			ThemeTag = { TextColor3 = "SubText" },
+			ThemeTag = { TextColor3 = "Text" },
 			Parent = Form,
 		})
 	end
@@ -222,13 +227,13 @@ function StandalonePanel:CreatePanel(Config)
 	local function AddInput(Field)
 		AddLabel(Field.Title or Field.Id)
 		local Holder = New("Frame", {
-			Size = UDim2.new(1, -4, 0, 34),
-			BackgroundTransparency = 0.08,
+			Size = UDim2.new(1, -4, 0, 36),
+			BackgroundTransparency = Config.InputTransparency or 0.02,
 			ThemeTag = { BackgroundColor3 = "DialogInput" },
 			Parent = Form,
 		}, {
 			New("UICorner", { CornerRadius = UDim.new(0, 5) }),
-			New("UIStroke", { Transparency = 0.6, ThemeTag = { Color = "DialogInputLine" } }),
+			New("UIStroke", { Transparency = Config.InputBorderTransparency or 0.35, ThemeTag = { Color = "DialogInputLine" } }),
 		})
 		local Input = New("TextBox", {
 			Size = UDim2.new(1, -16, 1, 0),
@@ -237,7 +242,7 @@ function StandalonePanel:CreatePanel(Config)
 			Text = tostring(Field.Default or ""),
 			PlaceholderText = Field.Placeholder or "",
 			ClearTextOnFocus = false,
-			TextSize = 12,
+			TextSize = 13,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
 			ThemeTag = { TextColor3 = "Text", PlaceholderColor3 = "SubText" },

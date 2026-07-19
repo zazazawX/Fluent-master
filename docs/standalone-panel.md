@@ -36,6 +36,10 @@ Fluent must already be loaded because StandalonePanel reuses its theme, notifica
 | `Theme` | current Fluent theme | Applies a Fluent theme name before building the panel. |
 | `AccentColor` | current Fluent accent | Applies a Color3 accent before building the panel. |
 | `Acrylic` | `false` | Set true to enable Fluent Acrylic blur. It is off by default. |
+| `PanelTransparency` | `0.02` | Non-Acrylic surface transparency; lower is more opaque. |
+| `InputTransparency` | `0.02` | Input background transparency. |
+| `InputBorderTransparency` | `0.35` | Input border transparency. |
+| `PreviewTransparency` | `0.04` | Preview/history background transparency. |
 | `ShowHistory` | true | Initial visibility of the preview/history area. |
 | `HistoryButtonText` | `History` | Header toggle label beside the close button. |
 | `LogLimit` | `30` | Maximum lines kept by AppendLog. |

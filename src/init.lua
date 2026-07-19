@@ -260,6 +260,9 @@ function Library:CreateWindow(Config)
 	end
 	table.insert(Library.Windows, Window)
 	Library:SetTheme(Library.Theme)
+	if not Library.CommandPalette then
+		Library.CommandPalette = require(Components.CommandPalette)(Library)
+	end
 
 	local ShowSplash = Config.ShowSplashScreen ~= false
 	if ShowSplash then
@@ -572,14 +575,17 @@ function Library:Notify(Config)
 	return NotificationModule:New(Config)
 end
 
-Library.CommandPalette = require(Components.CommandPalette)(Library)
-
 function Library:OpenCommandPalette()
+	if not Library.CommandPalette then
+		Library.CommandPalette = require(Components.CommandPalette)(Library)
+	end
 	Library.CommandPalette:Open()
 end
 
 function Library:CloseCommandPalette()
-	Library.CommandPalette:Close()
+	if Library.CommandPalette then
+		Library.CommandPalette:Close()
+	end
 end
 
 Library:RegisterCommand({

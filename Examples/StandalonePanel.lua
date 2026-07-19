@@ -17,6 +17,7 @@ local Panel = StandalonePanel:CreatePanel({
     ActionText = "Dispatch Secure Mail",
     SubmittingText = "Dispatching...",
     OverlayTransparency = 0.72,
+    Acrylic = true,
     CloseOnEscape = true,
     DestroyOnClose = false,
 

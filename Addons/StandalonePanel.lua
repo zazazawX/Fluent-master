@@ -303,11 +303,12 @@ function StandalonePanel:CreatePanel(Config)
 		Size = UDim2.new(1, -24, 1, -116), Position = UDim2.fromOffset(12, 55), BackgroundTransparency = 1,
 		BorderSizePixel = 0, ScrollBarThickness = 3, CanvasSize = UDim2.new(), ZIndex = 31, Parent = HistoryPanel,
 	})
+	local HistoryLayout = New("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = HistoryList })
 	local HistoryText = New("TextLabel", {
 		Size = UDim2.new(1, -8, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, Position = UDim2.fromOffset(4, 0),
 		BackgroundTransparency = 1, Text = "", TextSize = 12, TextWrapped = true,
 		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, ZIndex = 32,
-		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), ThemeTag = { TextColor3 = "SubText" }, Parent = HistoryList,
+		LayoutOrder = 100000, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), ThemeTag = { TextColor3 = "SubText" }, Parent = HistoryList,
 	})
 	local ClearHistoryButton = New("TextButton", {
 		Size = UDim2.new(0.5, -18, 0, 34), Position = UDim2.new(0, 12, 1, -46), BackgroundTransparency = 0,
@@ -675,6 +676,48 @@ function StandalonePanel:CreatePanel(Config)
 		HistoryButton.Text = HistoryBaseText .. " (" .. tostring(#self.Logs) .. ")"
 	end
 
+	function Controller:AppendHistory(Data)
+		Data = type(Data) == "table" and Data or { Summary = tostring(Data) }
+		local Success = Data.Success ~= false
+		local Time = tostring(Data.Time or os.date(Config.TimestampFormat or "%H:%M:%S"))
+		local User = tostring(Data.User or Data.Target or "Unknown")
+		local Summary = tostring(Data.Summary or Data.Message or "No details")
+		local Status = Data.Status or (Success and "Sent successfully" or "Send failed")
+		local Color = Success and Color3.fromRGB(45, 190, 115) or Color3.fromRGB(225, 65, 70)
+
+		local Entry = string.format("%s | %s | %s | %s", Time, Status, User, Summary)
+		table.insert(self.Logs, Entry)
+		local Limit = Config.LogLimit or 30
+		while #self.Logs > Limit do table.remove(self.Logs, 1) end
+		HistoryText.Visible = false
+
+		local Card = New("Frame", {
+			Size = UDim2.new(1, -6, 0, 62), BackgroundTransparency = 0.22,
+			ThemeTag = { BackgroundColor3 = "DialogButton" }, Parent = HistoryList,
+		}, { New("UICorner", { CornerRadius = UDim.new(0, 5) }) })
+		New("Frame", { Size = UDim2.new(0, 3, 1, 0), BackgroundColor3 = Color, BorderSizePixel = 0, Parent = Card }, {
+			New("UICorner", { CornerRadius = UDim.new(0, 3) }),
+		})
+		New("TextLabel", {
+			Size = UDim2.new(1, -18, 0, 25), Position = UDim2.fromOffset(11, 5), BackgroundTransparency = 1,
+			Text = string.format("%s  •  %s  •  %s", Time, Status, User), TextSize = 11,
+			TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = Color,
+			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold), Parent = Card,
+		})
+		New("TextLabel", {
+			Size = UDim2.new(1, -18, 0, 25), Position = UDim2.fromOffset(11, 30), BackgroundTransparency = 1,
+			Text = Summary, TextSize = 11, TextTruncate = Enum.TextTruncate.AtEnd,
+			TextXAlignment = Enum.TextXAlignment.Left, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+			ThemeTag = { TextColor3 = "SubText" }, Parent = Card,
+		})
+		task.defer(function()
+			local Height = HistoryLayout.AbsoluteContentSize.Y + 8
+			HistoryList.CanvasSize = UDim2.fromOffset(0, Height)
+			HistoryList.CanvasPosition = Vector2.new(0, math.max(0, Height - HistoryList.AbsoluteSize.Y))
+		end)
+		HistoryButton.Text = HistoryBaseText .. " (" .. tostring(#self.Logs) .. ")"
+	end
+
 	function Controller:SetItems(Items, Title, OnChanged)
 		HistoryScroll.Visible = false
 		ItemScroll.Visible = true
@@ -705,6 +748,10 @@ function StandalonePanel:CreatePanel(Config)
 
 	function Controller:ClearHistory()
 		table.clear(self.Logs)
+		for _, Child in ipairs(HistoryList:GetChildren()) do
+			if Child:IsA("Frame") then Child:Destroy() end
+		end
+		HistoryText.Visible = true
 		HistoryText.Text = ""
 		RefreshLogCanvas(false)
 		HistoryButton.Text = HistoryBaseText .. " (0)"

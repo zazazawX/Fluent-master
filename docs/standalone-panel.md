@@ -210,6 +210,7 @@ Validation runs before confirmation/submission. Every failure is displayed direc
 | `SetMetric(value, title?)` | Updates top-right metric. |
 | `SetPreview(text, title?)` | Replaces the main item-list/preview text and title. |
 | `AppendLog(text)` | Adds an entry only to the floating History window and trims it to LogLimit. |
+| `AppendHistory(data)` | Adds a structured History card. Supports `Time`, `User`/`Target`, `Success`, `Status`, and `Summary`/`Message`; successful cards are green and failed cards are red. |
 | `ClearHistory()` | Clears history and resets its badge. |
 | `CopyHistory()` | Returns `success, error?` after copying history. |
 | `SetFieldError(id, message?)` | Sets or clears an inline field error. |

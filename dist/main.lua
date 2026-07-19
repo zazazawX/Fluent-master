@@ -569,10 +569,8 @@ return function(Library)
 		if EnterPressed and Palette.Results[1] then local Command = Palette.Results[1]; Palette:Close(); Library:ExecuteCommand(Command) end
 	end, Tint)
 	Creator.AddSignal(Dismiss.Activated, function() Palette:Close() end, Tint)
-	Creator.AddSignal(UserInputService.InputBegan, function(Input, Processed)
-		if Input.KeyCode == Enum.KeyCode.K and (UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)) then
-			if not Processed or Palette.Opened then if Palette.Opened then Palette:Close() else Palette:Open() end end
-		elseif Palette.Opened and Input.KeyCode == Enum.KeyCode.Escape then Palette:Close() end
+	Creator.AddSignal(UserInputService.InputBegan, function(Input)
+		if Palette.Opened and Input.KeyCode == Enum.KeyCode.Escape then Palette:Close() end
 	end, Tint)
 
 	if UserInputService.TouchEnabled then

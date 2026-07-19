@@ -705,7 +705,7 @@ local KeySystem = {} do
 					KeyLink = GeneratedLink
 				end
 			end
-			if not KeyLink then
+			if not KeyLink and not Client then
 				Client = GetPandaAuthV4Client(PandaConfig)
 				if Client and type(Client.getKeyUrl) == "function" then
 					local LinkSuccess, GeneratedLink = pcall(Client.getKeyUrl)
@@ -713,6 +713,13 @@ local KeySystem = {} do
 						local GetKeyBaseUrl = PandaConfig.GetKeyBaseUrl or "https://ads.pandauth.com"
 						KeyLink = GeneratedLink:gsub("__PUSL_GETKEY_BASE__", GetKeyBaseUrl)
 					end
+				end
+			end
+			if not KeyLink then
+				local ServiceId = PandaConfig.ServiceId or PandaConfig.serviceId
+				if ServiceId and ServiceId ~= "" then
+					local GetKeyBaseUrl = PandaConfig.GetKeyBaseUrl or "https://ads.pandauth.com"
+					KeyLink = GetKeyBaseUrl .. "/getkey/" .. httpService:UrlEncode(tostring(ServiceId)) .. "?hwid=" .. httpService:UrlEncode(GetHardwareId(PandaConfig))
 				end
 			end
 		end

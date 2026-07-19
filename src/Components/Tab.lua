@@ -166,6 +166,7 @@ function TabModule:New(Title, Icon, Parent)
 		BorderSizePixel = 0,
 		CanvasSize = UDim2.fromScale(0, 0),
 		ScrollingDirection = Enum.ScrollingDirection.Y,
+		Selectable = false,
 		SelectionGroup = true,
 	}, {
 		ContainerLayout,

@@ -1,6 +1,7 @@
 local Root = script.Parent.Parent
 local Creator = require(Root.Creator)
 local GuiService = game:GetService("GuiService")
+local UserInputService = game:GetService("UserInputService")
 
 local New = Creator.New
 
@@ -179,7 +180,10 @@ function Dialog:Create()
 		if self.Window.DrawerOpen and self.Window.SetNavigationDrawer then
 			self.Window:SetNavigationDrawer(false)
 		end
-		NewDialog.PreviousSelection = GuiService.SelectedObject
+		local LastInput = UserInputService:GetLastInputType()
+		local GamepadNavigation = LastInput.Name:match("Gamepad") ~= nil
+		NewDialog.PreviousSelection = GamepadNavigation and GuiService.SelectedObject or nil
+		if not GamepadNavigation then GuiService.SelectedObject = nil end
 		Library.ActiveDialog = NewDialog
 		Library.DialogOpen = true
 		TintTransparency(0.75)
@@ -191,12 +195,14 @@ function Dialog:Create()
 			NewDialog.Scale.Scale = 1.1
 			Scale(1)
 		end
-		task.defer(function()
-			local FirstButton = NewDialog.ButtonFrames[1]
-			if Library.ActiveDialog == NewDialog and FirstButton and FirstButton.Parent then
-				GuiService.SelectedObject = FirstButton
-			end
-		end)
+		if GamepadNavigation then
+			task.defer(function()
+				local FirstButton = NewDialog.ButtonFrames[1]
+				if Library.ActiveDialog == NewDialog and FirstButton and FirstButton.Parent then
+					GuiService.SelectedObject = FirstButton
+				end
+			end)
+		end
 	end
 
 	function NewDialog:Close()

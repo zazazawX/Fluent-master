@@ -134,6 +134,7 @@ function Element:New(Idx, Config)
 		ScrollBarThickness = 4,
 		BorderSizePixel = 0,
 		CanvasSize = UDim2.fromScale(0, 0),
+		Selectable = false,
 	}, {
 		DropdownListLayout,
 	})

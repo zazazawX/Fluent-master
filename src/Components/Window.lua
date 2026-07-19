@@ -124,6 +124,7 @@ return function(Config)
 		BorderSizePixel = 0,
 		CanvasSize = UDim2.fromScale(0, 0),
 		ScrollingDirection = Enum.ScrollingDirection.Y,
+		Selectable = false,
 	}, {
 		New("UIListLayout", {
 			Padding = UDim.new(0, 4),
@@ -683,8 +684,11 @@ return function(Config)
 		Window.DrawerOpen = Open
 		local DrawerWidth = Window.DrawerWidth or 200
 		local TargetPosition = UDim2.fromOffset(Open and 12 or -DrawerWidth - 12, 54)
+		local LastInput = UserInputService:GetLastInputType()
+		local GamepadNavigation = LastInput.Name:match("Gamepad") ~= nil
 		if Open then
-			Window.PreviousSelection = GuiService.SelectedObject
+			Window.PreviousSelection = GamepadNavigation and GuiService.SelectedObject or nil
+			if not GamepadNavigation then GuiService.SelectedObject = nil end
 			DrawerScrim.Visible = true
 			NavigationButton.Visible = false
 		end
@@ -694,7 +698,7 @@ return function(Config)
 			{ Position = TargetPosition }
 		)
 
-		if Open then
+		if Open and GamepadNavigation then
 			task.defer(function()
 				local SelectedFrame = TabModule:GetSelectedFrame()
 				if Window.DrawerOpen and SelectedFrame and SelectedFrame.Parent then

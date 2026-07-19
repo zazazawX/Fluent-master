@@ -588,6 +588,7 @@ local script = create_mock_script("Components.Dialog")
 local Root = script.Parent.Parent
 local Creator = require(Root.Creator)
 local GuiService = game:GetService("GuiService")
+local UserInputService = game:GetService("UserInputService")
 
 local New = Creator.New
 
@@ -766,7 +767,10 @@ function Dialog:Create()
 		if self.Window.DrawerOpen and self.Window.SetNavigationDrawer then
 			self.Window:SetNavigationDrawer(false)
 		end
-		NewDialog.PreviousSelection = GuiService.SelectedObject
+		local LastInput = UserInputService:GetLastInputType()
+		local GamepadNavigation = LastInput.Name:match("Gamepad") ~= nil
+		NewDialog.PreviousSelection = GamepadNavigation and GuiService.SelectedObject or nil
+		if not GamepadNavigation then GuiService.SelectedObject = nil end
 		Library.ActiveDialog = NewDialog
 		Library.DialogOpen = true
 		TintTransparency(0.75)
@@ -778,12 +782,14 @@ function Dialog:Create()
 			NewDialog.Scale.Scale = 1.1
 			Scale(1)
 		end
-		task.defer(function()
-			local FirstButton = NewDialog.ButtonFrames[1]
-			if Library.ActiveDialog == NewDialog and FirstButton and FirstButton.Parent then
-				GuiService.SelectedObject = FirstButton
-			end
-		end)
+		if GamepadNavigation then
+			task.defer(function()
+				local FirstButton = NewDialog.ButtonFrames[1]
+				if Library.ActiveDialog == NewDialog and FirstButton and FirstButton.Parent then
+					GuiService.SelectedObject = FirstButton
+				end
+			end)
+		end
 	end
 
 	function NewDialog:Close()
@@ -1767,6 +1773,7 @@ function TabModule:New(Title, Icon, Parent)
 		BorderSizePixel = 0,
 		CanvasSize = UDim2.fromScale(0, 0),
 		ScrollingDirection = Enum.ScrollingDirection.Y,
+		Selectable = false,
 		SelectionGroup = true,
 	}, {
 		ContainerLayout,
@@ -2308,6 +2315,7 @@ return function(Config)
 		BorderSizePixel = 0,
 		CanvasSize = UDim2.fromScale(0, 0),
 		ScrollingDirection = Enum.ScrollingDirection.Y,
+		Selectable = false,
 	}, {
 		New("UIListLayout", {
 			Padding = UDim.new(0, 4),
@@ -2867,8 +2875,11 @@ return function(Config)
 		Window.DrawerOpen = Open
 		local DrawerWidth = Window.DrawerWidth or 200
 		local TargetPosition = UDim2.fromOffset(Open and 12 or -DrawerWidth - 12, 54)
+		local LastInput = UserInputService:GetLastInputType()
+		local GamepadNavigation = LastInput.Name:match("Gamepad") ~= nil
 		if Open then
-			Window.PreviousSelection = GuiService.SelectedObject
+			Window.PreviousSelection = GamepadNavigation and GuiService.SelectedObject or nil
+			if not GamepadNavigation then GuiService.SelectedObject = nil end
 			DrawerScrim.Visible = true
 			NavigationButton.Visible = false
 		end
@@ -2878,7 +2889,7 @@ return function(Config)
 			{ Position = TargetPosition }
 		)
 
-		if Open then
+		if Open and GamepadNavigation then
 			task.defer(function()
 				local SelectedFrame = TabModule:GetSelectedFrame()
 				if Window.DrawerOpen and SelectedFrame and SelectedFrame.Parent then
@@ -4301,6 +4312,7 @@ function Element:New(Idx, Config)
 		ScrollBarThickness = 4,
 		BorderSizePixel = 0,
 		CanvasSize = UDim2.fromScale(0, 0),
+		Selectable = false,
 	}, {
 		DropdownListLayout,
 	})

@@ -329,6 +329,7 @@ if EnableKeySystem then
 		-- Preset = "PandaAuthV4",
 		-- PresetConfig = {
 		--     Client = PandaAuthV4, -- optional when already injected globally
+		--     ServiceId = "YOUR_SERVICE_ID", -- used to build the Get Key URL
 		--     Premium = false -- true calls Validate_Premium
 		-- },
 

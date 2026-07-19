@@ -9,6 +9,17 @@ local StandalonePanel = loadstring(game:HttpGet(
 
 StandalonePanel:SetLibrary(Fluent)
 
+local ItemsByCategory = {
+    Fruits = { "Tomato [1.58kg] [x1]", "Dragon's Breath [10.05kg] [x1]", "Corn [4.84kg] [x1]" },
+    Seeds = { "Corn [x1]", "Bamboo [x10]", "Tulip [x13]", "Blueberry [x8]", "Carrot [x18]" },
+    Pets = { "Red Fox [x1]", "Dragonfly [x1]", "Raccoon [x2]" },
+    Gears = { "Trowel [x5]", "Sprinkler [x2]", "Teleport Pad [x1]" },
+}
+
+local function ItemList(Category)
+    return table.concat(ItemsByCategory[Category] or {}, "\n\n")
+end
+
 local Panel = StandalonePanel:CreatePanel({
     Title = "Secure Mail",
     Icon = "mail",
@@ -24,9 +35,10 @@ local Panel = StandalonePanel:CreatePanel({
     InputWidthScale = 0.82,
     InputHeight = 32,
 
-    PreviewTitle = "History",
-    Preview = "Ready.",
-    ShowHistory = true,
+    PreviewTitle = "Available Items",
+    Preview = ItemList("Fruits"),
+    HistoryTitle = "Gift Sending History",
+    ShowHistory = false,
     HistoryTimestamp = true,
     LogLimit = 30,
 
@@ -68,37 +80,15 @@ local Panel = StandalonePanel:CreatePanel({
             Max = 100,
         },
         {
-            Id = "Delivery",
+            Id = "Category",
             Type = "Choice",
-            Title = "Delivery method",
+            Title = "Target data category",
             Icon = "tags",
-            Values = { "Private", "Public", "Secure", "Fast" },
-            Default = "Secure",
-        },
-        {
-            Id = "Region",
-            Type = "Dropdown",
-            Title = "Destination region",
-            Icon = "map-pin",
-            Values = { "Automatic", "Asia", "Europe", "North America" },
-            Default = "Automatic",
-            Required = true,
-        },
-        {
-            Id = "Notify",
-            Type = "Toggle",
-            Title = "Delivery notification",
-            Icon = "bell",
-            Default = true,
-        },
-        {
-            Id = "Message",
-            Type = "Multiline",
-            Title = "Message",
-            Icon = "message-square",
-            Placeholder = "Optional message...",
-            Height = 76,
-            Max = 160,
+            Values = { "Fruits", "Seeds", "Pets", "Gears" },
+            Default = "Fruits",
+            OnChanged = function(Value, Controller)
+                Controller:SetPreview(ItemList(Value), Value .. " Items")
+            end,
         },
     },
 
@@ -107,13 +97,7 @@ local Panel = StandalonePanel:CreatePanel({
         Controller:SetMetric(Values.Amount, "Items")
 
         -- The returned string is appended to History automatically.
-        return string.format(
-            "Sent %d item(s) to %s via %s (%s)",
-            Values.Amount,
-            Values.Username,
-            Values.Delivery,
-            Values.Region
-        )
+        return string.format("To: %s\n%s | %s | x%d", Values.Username, Values.Category, (ItemsByCategory[Values.Category] or {})[1] or "Unknown", Values.Amount)
     end,
 })
 

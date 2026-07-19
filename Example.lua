@@ -323,7 +323,16 @@ if EnableKeySystem then
         --     return Key == "secret-demo-key"
         -- end,
         
-		-- Option D: PandaAuth V4 (set the service ID from your main script)
+		-- Option D1: PandaAuth V4 inside Kryptic Vault
+		-- PandaAuthV4 is injected by the Vault loader; do not fetch PUSL manually.
+		-- Comment out the Key option above before enabling this preset.
+		-- Preset = "PandaAuthV4",
+		-- PresetConfig = {
+		--     Client = PandaAuthV4, -- optional when already injected globally
+		--     Premium = false -- true calls Validate_Premium
+		-- },
+
+		-- Option D2: External PUSL V4 (outside Kryptic Vault)
 		-- Comment out the Key option above before enabling this preset.
 		-- Preset = "PandaAuthV4",
 		-- PresetConfig = {

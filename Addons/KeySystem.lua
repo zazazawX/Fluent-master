@@ -11,6 +11,12 @@ local KeySystem = {} do
 	end
 
 	local PandaAuthV4Clients = {}
+	local function GetPelindaClient(Config)
+		local Client = Config.Client or Pelinda
+		if type(Client) == "table" and type(Client.Init) == "function" then return Client end
+		return nil
+	end
+
 	local function GetHardwareId(Config)
 		if Config.HWID then return tostring(Config.HWID) end
 		if type(Config.GetHWID) == "function" then
@@ -95,6 +101,32 @@ local KeySystem = {} do
 				return Authenticated and Result.Key_Premium == true
 			end
 			return Authenticated
+		end,
+
+		PandaAuthV3 = function(Key, Config)
+			local Service = Config.ServiceId or Config.Service or Config.serviceId
+			local Client = GetPelindaClient(Config)
+			if not Service or Service == "" or not Client then return false end
+			local Attempts = math.max(1, tonumber(Config.Retries) or 3)
+			for Attempt = 1, Attempts do
+				local Success, Status = pcall(function()
+					return Client.Init({
+						Service = Service,
+						SilentMode = Config.SilentMode ~= false,
+						Key = tostring(Key),
+						SecurityLevel = Config.SecurityLevel or 1,
+					})
+				end)
+				if Success and Status == "validated!!" then
+					if Config.Premium == true or Config.RequirePremium == true then
+						local Environment = getgenv and getgenv() or _G
+						return Environment.__PELINDA_IS_PREMIUM__ == true
+					end
+					return true
+				end
+				if Attempt < Attempts then task.wait(Config.RetryDelay or 0.5) end
+			end
+			return false
 		end,
 
 		PandaAuthV4 = function(Key, Config)
@@ -659,6 +691,15 @@ local KeySystem = {} do
 			if ServiceId and ServiceId ~= "" then
 				local GetKeyBaseUrl = PandaConfig.GetKeyBaseUrl or "https://ads.pandauth.com"
 				KeyLink = GetKeyBaseUrl .. "/getkey/" .. httpService:UrlEncode(tostring(ServiceId)) .. "?hwid=" .. httpService:UrlEncode(GetHardwareId(PandaConfig))
+			end
+		end
+		if not KeyLink and Config.Preset == "PandaAuthV3" then
+			local PandaConfig = Config.PresetConfig or {}
+			local Service = PandaConfig.ServiceId or PandaConfig.Service or PandaConfig.serviceId
+			local Client = GetPelindaClient(PandaConfig)
+			if Service and Client and type(Client.GetKeyLink) == "function" then
+				local LinkSuccess, GeneratedLink = pcall(Client.GetKeyLink, { Service = Service })
+				if LinkSuccess and type(GeneratedLink) == "string" then KeyLink = GeneratedLink end
 			end
 		end
 		if KeyLink then

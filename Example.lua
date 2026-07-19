@@ -342,6 +342,19 @@ if EnableKeySystem then
 		--     GetKeyBaseUrl = "https://ads.pandauth.com"
 		-- },
 
+		-- Pelinda integration (PandaAuth V3)
+		-- Pelinda must already be loaded/injected before CreateKeySystem is called.
+		-- Preset = "PandaAuthV3",
+		-- PresetConfig = {
+		--     ServiceId = "YOUR_SERVICE_ID",
+		--     Client = Pelinda, -- optional when Pelinda is already global
+		--     SilentMode = true,
+		--     SecurityLevel = 1,
+		--     Retries = 3,
+		--     RetryDelay = 0.5,
+		--     Premium = false
+		-- },
+
 		-- Other built-in presets: Luaguard, PandaAuth, Keyguard
 		-- Preset = "Luaguard",
 		-- PresetConfig = { Project = "MyProject" },

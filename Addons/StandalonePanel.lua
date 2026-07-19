@@ -172,7 +172,7 @@ function StandalonePanel:CreatePanel(Config)
 	})
 
 	local Form = New("ScrollingFrame", {
-		Size = UDim2.new(0.38, -6, 1, 0),
+		Size = UDim2.new(Config.FormWidthScale or 0.44, -6, 1, 0),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ScrollBarThickness = 3,
@@ -183,8 +183,8 @@ function StandalonePanel:CreatePanel(Config)
 	})
 
 	local Preview = New("Frame", {
-		Size = UDim2.new(0.62, -6, 1, 0),
-		Position = UDim2.new(0.38, 6, 0, 0),
+		Size = UDim2.new(1 - (Config.FormWidthScale or 0.44), -6, 1, 0),
+		Position = UDim2.new(Config.FormWidthScale or 0.44, 6, 0, 0),
 		BackgroundTransparency = Config.PreviewTransparency or 0.04,
 		ThemeTag = { BackgroundColor3 = "DialogInput" },
 		Parent = Body,
@@ -217,9 +217,20 @@ function StandalonePanel:CreatePanel(Config)
 		ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "SubText" }, Parent = Preview,
 	}, { New("UICorner", { CornerRadius = UDim.new(0, 4) }) })
 
+	local HistoryScroll = New("ScrollingFrame", {
+		Size = UDim2.new(1, -16, 1, -46),
+		Position = UDim2.fromOffset(8, 38),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0,
+		ScrollBarThickness = 3,
+		CanvasSize = UDim2.new(),
+		Parent = Preview,
+	})
+
 	local PreviewText = New("TextLabel", {
-		Size = UDim2.new(1, -24, 1, -50),
-		Position = UDim2.fromOffset(12, 38),
+		Size = UDim2.new(1, -8, 0, 0),
+		AutomaticSize = Enum.AutomaticSize.Y,
+		Position = UDim2.fromOffset(4, 0),
 		BackgroundTransparency = 1,
 		Text = Config.Preview or "",
 		TextSize = 12,
@@ -228,8 +239,21 @@ function StandalonePanel:CreatePanel(Config)
 		TextYAlignment = Enum.TextYAlignment.Top,
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
 		ThemeTag = { TextColor3 = "SubText" },
-		Parent = Preview,
+		Parent = HistoryScroll,
 	})
+	local function RefreshHistoryCanvas(ScrollToBottom)
+		task.defer(function()
+			if not HistoryScroll.Parent or not PreviewText.Parent then return end
+			local Height = math.max(PreviewText.AbsoluteSize.Y + 8, HistoryScroll.AbsoluteSize.Y)
+			HistoryScroll.CanvasSize = UDim2.fromOffset(0, Height)
+			if ScrollToBottom then
+				HistoryScroll.CanvasPosition = Vector2.new(0, math.max(0, Height - HistoryScroll.AbsoluteSize.Y))
+			end
+		end)
+	end
+	Creator.AddSignal(PreviewText:GetPropertyChangedSignal("AbsoluteSize"), function()
+		RefreshHistoryCanvas(false)
+	end, Gui)
 
 	local FormLayout = Form:FindFirstChildOfClass("UIListLayout")
 	local function RefreshCanvas()
@@ -552,6 +576,7 @@ function StandalonePanel:CreatePanel(Config)
 	function Controller:SetPreview(Text, Title)
 		PreviewText.Text = tostring(Text or "")
 		if Title then PreviewTitle.Text = Title end
+		RefreshHistoryCanvas(true)
 	end
 
 	function Controller:AppendLog(Text)
@@ -683,20 +708,25 @@ function StandalonePanel:CreatePanel(Config)
 	end, Gui)
 
 	function Controller:UpdateLayout()
+		-- Keep the panel centered even when an executor reports a viewport resize.
+		Panel.AnchorPoint = Vector2.new(0.5, 0.5)
+		Panel.Position = UDim2.fromScale(0.5, 0.5)
 		Preview.Visible = self.HistoryVisible
 		if not self.HistoryVisible then
 			Form.Size = UDim2.new(1, 0, 1, 0)
 			return
 		end
-		if Panel.AbsoluteSize.X < 520 then
+		if Panel.AbsoluteSize.X < (Config.StackBreakpoint or 430) then
 			Form.Size = UDim2.new(1, 0, 0.48, -4)
 			Preview.Size = UDim2.new(1, 0, 0.52, -4)
 			Preview.Position = UDim2.new(0, 0, 0.48, 4)
 		else
-			Form.Size = UDim2.new(0.38, -6, 1, 0)
-			Preview.Size = UDim2.new(0.62, -6, 1, 0)
-			Preview.Position = UDim2.new(0.38, 6, 0, 0)
+			local FormWidth = math.clamp(Config.FormWidthScale or 0.44, 0.32, 0.68)
+			Form.Size = UDim2.new(FormWidth, -6, 1, 0)
+			Preview.Size = UDim2.new(1 - FormWidth, -6, 1, 0)
+			Preview.Position = UDim2.new(FormWidth, 6, 0, 0)
 		end
+		RefreshHistoryCanvas(false)
 	end
 	Creator.AddSignal(Panel:GetPropertyChangedSignal("AbsoluteSize"), function() Controller:UpdateLayout() end, Gui)
 	task.defer(function() Controller:UpdateLayout() end)

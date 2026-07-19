@@ -44,6 +44,8 @@ Fluent must already be loaded because StandalonePanel reuses its theme, notifica
 | `PanelTransparency` | `0.02` | Non-Acrylic surface transparency; lower is more opaque. |
 | `InputTransparency` | `0.02` | Input background transparency. |
 | `InputBorderTransparency` | `0.35` | Input border transparency. |
+| `InputHeight` | `32` | Height of single-line Input and Number fields. |
+| `InputHorizontalInset` | `4` | Left/right inset inside the form column. |
 | `PreviewTransparency` | `0.04` | Preview/history background transparency. |
 | `ShowHistory` | true | Initial visibility of the preview/history area. |
 | `HistoryButtonText` | `History` | Header toggle label beside the close button. |

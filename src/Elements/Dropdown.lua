@@ -16,6 +16,7 @@ Element.__type = "Dropdown"
 function Element:New(Idx, Config)
 	local Library = self.Library
 	local Searchable = Config.Search == true or (Config.Search ~= false and #(Config.Values or {}) > 6)
+	local AllowNull = Config.AllowNull ~= false
 
 	local Dropdown = {
 		Values = Config.Values or {},
@@ -563,7 +564,7 @@ function Element:New(Idx, Config)
 			Creator.AddSignal(Button.Activated, function()
 				local Try = not Selected
 
-				if Dropdown:GetActiveValues() == 1 and not Try and not Config.AllowNull then
+				if Dropdown:GetActiveValues() == 1 and not Try and not AllowNull then
 				else
 					if Dropdown.Multi then
 						Selected = Try

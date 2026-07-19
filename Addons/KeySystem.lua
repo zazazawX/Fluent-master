@@ -202,14 +202,24 @@ local KeySystem = {} do
 		local SaveKey = Config.SaveKey
 		local SavePath = Config.SavePath or "fluent-key.txt"
 		local SavedKey = ""
+		local SessionStore
+		if getgenv then
+			local Environment = getgenv()
+			Environment.__FluentKeySessions = Environment.__FluentKeySessions or {}
+			SessionStore = Environment.__FluentKeySessions
+		end
 
 		if SaveKey then
-			local readfile = readfile or (io and io.read)
-			local isfile = isfile or function(path)
-				local success, _ = pcall(readfile, path)
-				return success
+			if SessionStore and SessionStore[SavePath] then
+				SavedKey = tostring(SessionStore[SavePath])
 			end
-			if isfile(SavePath) then
+			local CanRead = type(readfile) == "function"
+			local FileExists = true
+			if type(isfile) == "function" then
+				local CheckSuccess, Exists = pcall(isfile, SavePath)
+				FileExists = CheckSuccess and Exists == true
+			end
+			if SavedKey == "" and CanRead and FileExists then
 				local successRead, content = pcall(readfile, SavePath)
 				if successRead and content then
 					SavedKey = content:gsub("%s+", "")
@@ -499,8 +509,8 @@ local KeySystem = {} do
 					StatusLabel.Text = "Key verified successfully."
 					StatusLabel.TextColor3 = Color3.fromRGB(110, 220, 150)
 					if SaveKey then
-						local writefile = writefile or (io and io.write)
-						if writefile then
+						if SessionStore then SessionStore[SavePath] = Entered end
+						if type(writefile) == "function" then
 							pcall(writefile, SavePath, Entered)
 						end
 					end

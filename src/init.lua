@@ -54,6 +54,10 @@ local Library = {
 	ActiveDropdown = nil,
 	ActiveDialog = nil,
 	Options = {},
+	Commands = {},
+	Errors = {},
+	DisabledCallbacks = setmetatable({}, { __mode = "k" }),
+	CallbackContexts = setmetatable({}, { __mode = "k" }),
 	Themes = Themes.Names,
 	Types = require(Root.Types),
 	ThemeContrastReports = ThemeValidator.ValidateAll(Themes, 4.5),
@@ -80,6 +84,54 @@ local Library = {
 	Creator = Creator,
 	Acrylic = Acrylic,
 }
+
+function Library:RegisterCommand(Command)
+	assert(type(Command) == "table" and Command.Id and Command.Title and type(Command.Callback) == "function", "RegisterCommand - Id, Title and Callback are required")
+	Library.Commands[Command.Id] = Command
+	return Command
+end
+
+function Library:UnregisterCommand(Id)
+	Library.Commands[Id] = nil
+end
+
+function Library:GetCommands()
+	local Result = {}
+	for _, Command in pairs(Library.Commands) do table.insert(Result, Command) end
+	for Id, Option in pairs(Library.Options) do
+		if Option.Type == "Toggle" and type(Option.SetValue) == "function" then
+			table.insert(Result, {
+				Id = "toggle:" .. tostring(Id),
+				Title = (Option.Value and "Disable " or "Enable ") .. tostring(Option.Title or Id),
+				Keywords = { tostring(Id), "toggle" },
+				Callback = function() Option:SetValue(not Option.Value) end,
+			})
+		end
+	end
+	return Result
+end
+
+function Library:ExecuteCommand(Command)
+	if type(Command) == "string" then Command = Library.Commands[Command] end
+	if not Command then return false end
+	Library:SafeCallback(Command.Callback)
+	return true
+end
+
+function Library:RegisterCallbackContext(Callback, Context)
+	if type(Callback) == "function" then
+		Library.CallbackContexts[Callback] = Context
+	end
+	return Callback
+end
+
+function Library:GetErrors()
+	return Library.Errors
+end
+
+function Library:ClearErrors()
+	table.clear(Library.Errors)
+end
 
 function Library:GetLayer(Name)
 	return Library.Layers[Name] or Library.SafeArea
@@ -118,27 +170,34 @@ function Library:SafeCallback(Function, ...)
 	if not Function then
 		return
 	end
+	if Library.DisabledCallbacks[Function] then return end
+	local Arguments = table.pack(...)
+	local Context = Library.CallbackContexts[Function]
 
-	local Success, Event = pcall(Function, ...)
+	local Success, Event = xpcall(function()
+		return Function(table.unpack(Arguments, 1, Arguments.n))
+	end, function(Error)
+		return debug.traceback(tostring(Error), 2)
+	end)
 	if not Success then
-		local _, i = Event:find(":%d+: ")
-
-		if not i then
-			return Library:Notify({
-				Title = "Interface",
-				Content = "Callback error",
-				SubContent = Event,
-				Duration = 5,
+		local Record = { Id = #Library.Errors + 1, Message = tostring(Event):match("^[^\n]+") or "Callback error", Traceback = tostring(Event), Callback = Function, Arguments = Arguments, Context = Context, Count = 1, Time = os.time() }
+		table.insert(Library.Errors, Record)
+		local ErrorTitle = Context and Context.Title and (Context.Title .. " encountered an error") or "Callback error"
+		Library:Notify({ Title = ErrorTitle, Content = Record.Message, SubContent = "Open the error dialog for details.", Duration = 6 })
+		if Library.Window and not Library.DialogOpen then
+			Library.Window:Dialog({
+				Title = ErrorTitle,
+				Content = Record.Message,
+				Buttons = {
+					{ Title = "Retry", Callback = function() Library:SafeCallback(Function, table.unpack(Arguments, 1, Arguments.n)) end },
+					{ Title = "Disable", Callback = function() Library.DisabledCallbacks[Function] = true end },
+					{ Title = "Copy error", Callback = function() if setclipboard then setclipboard(Record.Traceback) end end },
+				},
 			})
 		end
-
-		return Library:Notify({
-			Title = "Interface",
-			Content = "Callback error",
-			SubContent = Event:sub(i + 1),
-			Duration = 5,
-		})
+		return nil, Event
 	end
+	return Event
 end
 
 function Library:Round(Number, Factor)
@@ -511,6 +570,38 @@ end
 
 function Library:Notify(Config)
 	return NotificationModule:New(Config)
+end
+
+Library.CommandPalette = require(Components.CommandPalette)(Library)
+
+function Library:OpenCommandPalette()
+	Library.CommandPalette:Open()
+end
+
+function Library:CloseCommandPalette()
+	Library.CommandPalette:Close()
+end
+
+Library:RegisterCommand({
+	Id = "disable-all",
+	Title = "Disable all toggles",
+	Keywords = { "stop", "off", "reset" },
+	Callback = function()
+		for _, Option in pairs(Library.Options) do
+			if Option.Type == "Toggle" and Option.Value and type(Option.SetValue) == "function" then
+				Option:SetValue(false)
+			end
+		end
+	end,
+})
+
+for _, ThemeName in ipairs(Library.Themes) do
+	Library:RegisterCommand({
+		Id = "theme:" .. ThemeName,
+		Title = "Change theme to " .. ThemeName,
+		Keywords = { "appearance", "color", "theme" },
+		Callback = function() Library:SetTheme(ThemeName) end,
+	})
 end
 
 if getgenv then

@@ -10,6 +10,8 @@
 - Reduced-motion mode and theme contrast reports
 - Versioned configuration files with migrations
 - Strict Luau public API types
+- Searchable Command Palette (Ctrl+K on desktop, Find on mobile)
+- Callback Error Boundary with Retry, Disable, and Copy error actions
 
 ## Installation
 
@@ -52,6 +54,32 @@ Keyboard and gamepad shortcuts:
 - M or gamepad X: toggle the mobile navigation drawer
 - Escape or gamepad B: close the active overlay
 - Arrow keys or D-pad: adjust a focused slider
+- Ctrl+K: search actions, buttons registered with `CommandId`, and toggles
+
+## Command Palette and callback recovery
+
+~~~lua
+Tabs.Main:AddButton({
+    Title = "Open settings",
+    CommandId = "open-settings",
+    CommandKeywords = { "preferences", "config" },
+    Callback = function()
+        Window:SelectTab(2)
+    end,
+})
+
+Fluent:RegisterCommand({
+    Id = "disable-feature",
+    Title = "Disable feature",
+    Callback = function()
+        Options.MyToggle:SetValue(false)
+    end,
+})
+~~~
+
+Errors raised by Button and Toggle callbacks are contained so the rest of the UI
+keeps running. The recovery dialog can retry the action, disable that callback,
+or copy its traceback for debugging. Use `Fluent:GetErrors()` to inspect the log.
 
 ## Strict Luau types
 

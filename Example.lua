@@ -53,6 +53,8 @@ do
     Tabs.Main:AddButton({
         Title = "Button",
         Description = "Very important button",
+        CommandId = "open-example-dialog", -- This button is now searchable with Ctrl+K
+        CommandKeywords = { "dialog", "example" },
         Callback = function()
             Window:Dialog({
                 Title = "Title",
@@ -93,6 +95,19 @@ do
     end)
 
     Options.MyToggle:SetValue(false)
+
+    -- Add any custom action to the Command Palette.
+    Fluent:RegisterCommand({
+        Id = "open-settings",
+        Title = "Open settings",
+        Keywords = { "preferences", "config" },
+        Callback = function()
+            Window:SelectTab(2)
+        end
+    })
+
+    -- Desktop: press Ctrl+K. Mobile: tap the Find button.
+    -- Fluent:OpenCommandPalette() can also open it from your own button.
 
 
     

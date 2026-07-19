@@ -11,6 +11,15 @@ Element.__type = "Button"
 function Element:New(Config)
 	assert(Config.Title, "Button - Missing Title")
 	Config.Callback = Config.Callback or function() end
+	self.Library:RegisterCallbackContext(Config.Callback, { Title = Config.Title, Type = "Button" })
+	if Config.CommandId then
+		self.Library:RegisterCommand({
+			Id = Config.CommandId,
+			Title = Config.CommandTitle or Config.Title,
+			Keywords = Config.CommandKeywords,
+			Callback = Config.Callback,
+		})
+	end
 
 	local ButtonFrame = require(Components.Element)(Config.Title, Config.Description, self.Container, true, Config.Tooltip)
 

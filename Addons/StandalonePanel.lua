@@ -19,6 +19,13 @@ function StandalonePanel:CreatePanel(Config)
 	local Library = self.Library
 	local Creator = Library.Creator
 	local New = Creator.New
+	local Acrylic = Library.Acrylic
+	local PreviousUseAcrylic = Library.UseAcrylic == true
+	local UseAcrylic = Config.Acrylic == true or (Config.Acrylic == nil and Library.UseAcrylic == true)
+	if UseAcrylic then
+		Library.UseAcrylic = true
+		if not PreviousUseAcrylic then Acrylic.init() end
+	end
 	local Controller = {
 		Values = {},
 		Inputs = {},
@@ -43,7 +50,7 @@ function StandalonePanel:CreatePanel(Config)
 	local Overlay = New("Frame", {
 		Size = UDim2.fromScale(1, 1),
 		BackgroundColor3 = Color3.new(0, 0, 0),
-		BackgroundTransparency = Config.OverlayTransparency or 0.72,
+		BackgroundTransparency = Config.Overlay == false and 1 or (Config.OverlayTransparency or 0.78),
 		BorderSizePixel = 0,
 		Parent = Gui,
 	})
@@ -52,21 +59,38 @@ function StandalonePanel:CreatePanel(Config)
 		Size = Config.Size or UDim2.new(0.9, 0, 0.72, 0),
 		Position = UDim2.fromScale(0.5, 0.5),
 		AnchorPoint = Vector2.new(0.5, 0.5),
-		ThemeTag = { BackgroundColor3 = "Dialog" },
+		BackgroundTransparency = 1,
 		Parent = Overlay,
 	}, {
 		New("UISizeConstraint", {
 			MinSize = Vector2.new(320, 360),
 			MaxSize = Vector2.new(760, 520),
 		}),
-		New("UICorner", { CornerRadius = UDim.new(0, 8) }),
-		New("UIStroke", { Transparency = 0.45, ThemeTag = { Color = "DialogBorder" } }),
 	})
+	New("ImageLabel", {
+		Size = UDim2.new(1, 70, 1, 70),
+		Position = UDim2.fromScale(0.5, 0.5),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Image = "rbxassetid://8992230677",
+		ImageColor3 = Color3.new(0, 0, 0),
+		ImageTransparency = 0.5,
+		BackgroundTransparency = 1,
+		ScaleType = Enum.ScaleType.Slice,
+		SliceCenter = Rect.new(99, 99, 99, 99),
+		Parent = Panel,
+	})
+	local Paint = Acrylic.AcrylicPaint()
+	Library.UseAcrylic = PreviousUseAcrylic
+	Paint.Frame.Parent = Panel
+	if Paint.AddParent then Paint.AddParent(Panel) end
+	New("UICorner", { CornerRadius = UDim.new(0, 8), Parent = Paint.Frame })
+	New("UIStroke", { Transparency = 0.5, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, ThemeTag = { Color = "AcrylicBorder" }, Parent = Paint.Frame })
+	local Surface = Paint.Frame
 
 	local Header = New("Frame", {
 		Size = UDim2.new(1, 0, 0, 50),
 		BackgroundTransparency = 1,
-		Parent = Panel,
+		Parent = Surface,
 	}, {
 		New("Frame", {
 			Size = UDim2.new(1, 0, 0, 1),
@@ -80,7 +104,7 @@ function StandalonePanel:CreatePanel(Config)
 		Position = UDim2.fromOffset(16, 0),
 		BackgroundTransparency = 1,
 		Text = Config.Title or "Standalone Panel",
-		TextSize = 16,
+		TextSize = 15,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
 		ThemeTag = { TextColor3 = "Text" },
@@ -110,10 +134,10 @@ function StandalonePanel:CreatePanel(Config)
 	})
 
 	local Body = New("Frame", {
-		Size = UDim2.new(1, -24, 1, -118),
-		Position = UDim2.fromOffset(12, 58),
+		Size = UDim2.new(1, -28, 1, -126),
+		Position = UDim2.fromOffset(14, 58),
 		BackgroundTransparency = 1,
-		Parent = Panel,
+		Parent = Surface,
 	})
 
 	local Form = New("ScrollingFrame", {
@@ -130,8 +154,8 @@ function StandalonePanel:CreatePanel(Config)
 	local Preview = New("Frame", {
 		Size = UDim2.new(0.62, -6, 1, 0),
 		Position = UDim2.new(0.38, 6, 0, 0),
-		BackgroundTransparency = 0.35,
-		ThemeTag = { BackgroundColor3 = "DialogHolder" },
+		BackgroundTransparency = 0.15,
+		ThemeTag = { BackgroundColor3 = "DialogInput" },
 		Parent = Body,
 	}, {
 		New("UICorner", { CornerRadius = UDim.new(0, 6) }),
@@ -181,7 +205,7 @@ function StandalonePanel:CreatePanel(Config)
 		AddLabel(Field.Title or Field.Id)
 		local Holder = New("Frame", {
 			Size = UDim2.new(1, -4, 0, 34),
-			BackgroundTransparency = 0.15,
+			BackgroundTransparency = 0.08,
 			ThemeTag = { BackgroundColor3 = "DialogInput" },
 			Parent = Form,
 		}, {
@@ -201,6 +225,7 @@ function StandalonePanel:CreatePanel(Config)
 			ThemeTag = { TextColor3 = "Text", PlaceholderColor3 = "SubText" },
 			Parent = Holder,
 		})
+		local Indicator = New("Frame", { Size = UDim2.new(1, -4, 0, 1), Position = UDim2.new(0, 2, 1, -1), ThemeTag = { BackgroundColor3 = "DialogInputLine" }, Parent = Holder })
 		Controller.Values[Field.Id] = Field.Default or ""
 		Controller.Inputs[Field.Id] = Input
 		Creator.AddSignal(Input:GetPropertyChangedSignal("Text"), function()
@@ -208,6 +233,14 @@ function StandalonePanel:CreatePanel(Config)
 			if Field.Type == "Number" then Value = tonumber(Value) end
 			Controller.Values[Field.Id] = Value
 			if Field.OnChanged then Library:SafeCallback(Field.OnChanged, Value, Controller) end
+		end, Gui)
+		Creator.AddSignal(Input.Focused, function()
+			Indicator.Size = UDim2.new(1, -2, 0, 2)
+			Creator.OverrideTag(Indicator, { BackgroundColor3 = "Accent" })
+		end, Gui)
+		Creator.AddSignal(Input.FocusLost, function()
+			Indicator.Size = UDim2.new(1, -4, 0, 1)
+			Creator.OverrideTag(Indicator, { BackgroundColor3 = "DialogInputLine" })
 		end, Gui)
 	end
 
@@ -258,16 +291,20 @@ function StandalonePanel:CreatePanel(Config)
 		if Layout then Form.CanvasSize = UDim2.fromOffset(0, Layout.AbsoluteContentSize.Y + 4) end
 	end)
 
+	local Footer = New("Frame", { Size = UDim2.new(1, 0, 0, 60), Position = UDim2.new(0, 0, 1, -60), ThemeTag = { BackgroundColor3 = "DialogHolder" }, Parent = Surface }, {
+		New("Frame", { Size = UDim2.new(1, 0, 0, 1), ThemeTag = { BackgroundColor3 = "DialogHolderLine" } }),
+	})
 	local Action = New("TextButton", {
-		Size = UDim2.new(1, -24, 0, 40),
-		Position = UDim2.new(0, 12, 1, -50),
+		Size = UDim2.new(1, -28, 0, 34),
+		Position = UDim2.fromOffset(14, 13),
 		Text = Config.ActionText or "Submit",
 		TextSize = 13,
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
-		ThemeTag = { BackgroundColor3 = "Accent", TextColor3 = "ToggleToggled" },
-		Parent = Panel,
+		ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "Text" },
+		Parent = Footer,
 	}, {
 		New("UICorner", { CornerRadius = UDim.new(0, 5) }),
+		New("UIStroke", { Transparency = 0.65, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, ThemeTag = { Color = "DialogButtonBorder" } }),
 	})
 
 	function Controller:SetMetric(Value, Title)
@@ -321,19 +358,25 @@ function StandalonePanel:CreatePanel(Config)
 	function Controller:Open()
 		self.Opened = true
 		Gui.Enabled = true
+		if Paint.SetVisibility then Paint.SetVisibility(true) end
 	end
 
 	function Controller:Close()
 		self.Opened = false
+		if Paint.SetVisibility then Paint.SetVisibility(false) end
 		Gui.Enabled = false
 	end
 
 	function Controller:Destroy()
 		self.Opened = false
+		if Paint.Model then Paint.Model:Destroy() end
+		if UseAcrylic and not PreviousUseAcrylic and Acrylic.Disable then Acrylic.Disable() end
 		Gui:Destroy()
 	end
 
 	Creator.AddSignal(Action.Activated, function() Controller:Submit() end, Gui)
+	Creator.AddSignal(Action.MouseEnter, function() if not Controller.Submitting then Action.BackgroundTransparency = 0.15 end end, Gui)
+	Creator.AddSignal(Action.MouseLeave, function() Action.BackgroundTransparency = Controller.Submitting and 0.45 or 0 end, Gui)
 	Creator.AddSignal(CloseButton.Activated, function()
 		if Config.DestroyOnClose then Controller:Destroy() else Controller:Close() end
 		if Config.OnClose then Library:SafeCallback(Config.OnClose, Controller) end

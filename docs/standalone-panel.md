@@ -31,7 +31,9 @@ Fluent must already be loaded because StandalonePanel reuses its theme, notifica
 | `InitialValues` | `{[Id]: value}` | Overrides field values after creation. |
 | `ActionText` | `Submit` | Primary button label. |
 | `SubmittingText` | `Working...` | Label while OnSubmit runs. |
-| `OverlayTransparency` | `0.72` | Full-viewport dark overlay transparency. |
+| `OverlayTransparency` | `0.78` | Full-viewport dark overlay transparency. |
+| `Overlay` | true | Set false to remove the dark full-screen scrim. |
+| `Acrylic` | follows Fluent | Uses Fluent AcrylicPaint/noise and enables blur when true. |
 | `LogLimit` | `30` | Maximum lines kept by AppendLog. |
 | `CloseOnEscape` | true | Escape hides the panel. |
 | `DestroyOnClose` | false | Close button destroys instead of hiding. |

@@ -4502,13 +4502,18 @@ function Element:New(Idx, Config)
 	end, DropdownFrame.Frame)
 
 	local ScrollFrame = self.ScrollFrame
+	local function IsGamepadNavigation()
+		local LastInput = UserInputService:GetLastInputType()
+		return LastInput.Name:match("Gamepad") ~= nil
+	end
 	function Dropdown:Open()
 		if Library.ActiveDropdown and Library.ActiveDropdown ~= Dropdown then
 			Library.ActiveDropdown:Close()
 		end
 		Library.ActiveDropdown = Dropdown
 		Dropdown.Opened = true
-		Dropdown.PreviousSelection = GuiService.SelectedObject
+		local GamepadNavigation = IsGamepadNavigation()
+		Dropdown.PreviousSelection = GamepadNavigation and GuiService.SelectedObject or nil
 		ScrollFrame.ScrollingEnabled = false
 		if Searchable and SearchBox then
 			SearchBox.Input.Text = ""
@@ -4522,12 +4527,14 @@ function Element:New(Idx, Config)
 			TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
 			{ Size = UDim2.fromScale(1, 1) }
 		)
-		task.defer(function()
-			local FirstButton = Dropdown.OptionButtons[1]
-			if Dropdown.Opened and FirstButton and FirstButton.Parent then
-				GuiService.SelectedObject = FirstButton
-			end
-		end)
+		if GamepadNavigation then
+			task.defer(function()
+				local FirstButton = Dropdown.OptionButtons[1]
+				if Dropdown.Opened and FirstButton and FirstButton.Parent then
+					GuiService.SelectedObject = FirstButton
+				end
+			end)
+		end
 	end
 
 	function Dropdown:Close()

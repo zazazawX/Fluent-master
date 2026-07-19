@@ -35,6 +35,11 @@ function StandalonePanel:CreatePanel(Config)
 		Choices = {},
 		ChoiceStrokes = {},
 		ChoiceSelectors = {},
+		Toggles = {},
+		Dropdowns = {},
+		DropdownSelectors = {},
+		ErrorLabels = {},
+		Fields = {},
 		Logs = {},
 		Opened = true,
 		Submitting = false,
@@ -108,9 +113,13 @@ function StandalonePanel:CreatePanel(Config)
 		}),
 	})
 
+	local TitleIcon = Config.Icon and New("ImageLabel", {
+		Size = UDim2.fromOffset(16, 16), Position = UDim2.fromOffset(16, 17), BackgroundTransparency = 1,
+		Image = Library:GetIcon(Config.Icon) or Config.Icon, ThemeTag = { ImageColor3 = "Text" }, Parent = Header,
+	}) or nil
 	New("TextLabel", {
 		Size = UDim2.new(0.6, -20, 1, 0),
-		Position = UDim2.fromOffset(16, 0),
+		Position = UDim2.fromOffset(TitleIcon and 40 or 16, 0),
 		BackgroundTransparency = 1,
 		Text = Config.Title or "Standalone Panel",
 		TextSize = 15,
@@ -170,7 +179,7 @@ function StandalonePanel:CreatePanel(Config)
 		CanvasSize = UDim2.new(),
 		Parent = Body,
 	}, {
-		New("UIListLayout", { Padding = UDim.new(0, 9), SortOrder = Enum.SortOrder.LayoutOrder }),
+		New("UIListLayout", { Padding = UDim.new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder }),
 	})
 
 	local Preview = New("Frame", {
@@ -185,7 +194,7 @@ function StandalonePanel:CreatePanel(Config)
 	})
 
 	local PreviewTitle = New("TextLabel", {
-		Size = UDim2.new(1, -24, 0, 34),
+		Size = UDim2.new(1, -142, 0, 34),
 		Position = UDim2.fromOffset(12, 4),
 		BackgroundTransparency = 1,
 		Text = Config.PreviewTitle or "Preview",
@@ -195,6 +204,18 @@ function StandalonePanel:CreatePanel(Config)
 		ThemeTag = { TextColor3 = "Text" },
 		Parent = Preview,
 	})
+	local HistoryBaseText = Config.HistoryButtonText or "History"
+	HistoryButton.Text = HistoryBaseText .. " (0)"
+	local ClearHistoryButton = New("TextButton", {
+		Size = UDim2.fromOffset(48, 24), Position = UDim2.new(1, -108, 0, 9), BackgroundTransparency = 0.35,
+		Text = "Clear", TextSize = 10, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+		ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "SubText" }, Parent = Preview,
+	}, { New("UICorner", { CornerRadius = UDim.new(0, 4) }) })
+	local CopyHistoryButton = New("TextButton", {
+		Size = UDim2.fromOffset(48, 24), Position = UDim2.new(1, -56, 0, 9), BackgroundTransparency = 0.35,
+		Text = "Copy", TextSize = 10, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+		ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "SubText" }, Parent = Preview,
+	}, { New("UICorner", { CornerRadius = UDim.new(0, 4) }) })
 
 	local PreviewText = New("TextLabel", {
 		Size = UDim2.new(1, -24, 1, -50),
@@ -210,24 +231,93 @@ function StandalonePanel:CreatePanel(Config)
 		Parent = Preview,
 	})
 
-	local function AddLabel(Text)
-		return New("TextLabel", {
-			Size = UDim2.new(1, -4, 0, 18),
-			BackgroundTransparency = 1,
-			Text = Text,
-			TextSize = 12,
-			TextTransparency = 0.12,
+	local FormLayout = Form:FindFirstChildOfClass("UIListLayout")
+	local function RefreshCanvas()
+		task.defer(function()
+			if FormLayout then Form.CanvasSize = UDim2.fromOffset(0, FormLayout.AbsoluteContentSize.Y + 6) end
+		end)
+	end
+	Creator.AddSignal(FormLayout:GetPropertyChangedSignal("AbsoluteContentSize"), RefreshCanvas, Gui)
+
+	local function AddLabel(Field)
+		local HasIcon = Field.Icon ~= nil
+		local Heading = New("Frame", { Size = UDim2.new(1, -4, 0, 18), BackgroundTransparency = 1, Parent = Form })
+		if HasIcon then
+			New("ImageLabel", {
+				Size = UDim2.fromOffset(14, 14), Position = UDim2.fromOffset(0, 2), BackgroundTransparency = 1,
+				Image = Library:GetIcon(Field.Icon) or Field.Icon, ThemeTag = { ImageColor3 = "SubText" }, Parent = Heading,
+			})
+		end
+		New("TextLabel", {
+			Size = UDim2.new(1, HasIcon and -20 or 0, 1, 0), Position = UDim2.fromOffset(HasIcon and 20 or 0, 0), BackgroundTransparency = 1,
+			Text = Field.Title or Field.Id, TextSize = 12, TextTransparency = 0.12,
 			TextXAlignment = Enum.TextXAlignment.Left,
-			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
-			ThemeTag = { TextColor3 = "Text" },
-			Parent = Form,
+			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+			ThemeTag = { TextColor3 = "Text" }, Parent = Heading,
 		})
+		if Field.Description then
+			New("TextLabel", {
+				Size = UDim2.new(1, -4, 0, 16), BackgroundTransparency = 1, Text = Field.Description,
+				TextSize = 10, TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left,
+				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), ThemeTag = { TextColor3 = "SubText" }, Parent = Form,
+			})
+		end
+	end
+
+	local function AddError(Field)
+		local ErrorLabel = New("TextLabel", {
+			Size = UDim2.new(1, -4, 0, 0), BackgroundTransparency = 1, Visible = false,
+			Text = "", TextSize = 10, TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left,
+			TextColor3 = Color3.fromRGB(245, 115, 115), FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), Parent = Form,
+		})
+		Controller.ErrorLabels[Field.Id] = ErrorLabel
+	end
+
+	function Controller:SetFieldError(Id, Message)
+		local Label = self.ErrorLabels[Id]
+		if not Label then return end
+		Label.Text = Message or ""
+		Label.Visible = Message ~= nil and Message ~= ""
+		Label.Size = UDim2.new(1, -4, 0, Label.Visible and 16 or 0)
+		RefreshCanvas()
+	end
+
+	function Controller:ValidateField(Field)
+		local Value = self.Values[Field.Id]
+		local Empty = Value == nil or Value == ""
+		local Message
+		if Field.Type == "Number" and self.Inputs[Field.Id] and self.Inputs[Field.Id].Text ~= "" and Value == nil then
+			Message = Field.NumberMessage or ((Field.Title or Field.Id) .. " must be a number")
+		elseif Field.Required and Empty then
+			Message = Field.RequiredMessage or ((Field.Title or Field.Id) .. " is required")
+		elseif not Empty and Field.Min ~= nil and ((type(Value) == "number" and Value < Field.Min) or (type(Value) == "string" and #Value < Field.Min)) then
+			Message = Field.MinMessage or ((Field.Title or Field.Id) .. " must be at least " .. tostring(Field.Min))
+		elseif not Empty and Field.Max ~= nil and ((type(Value) == "number" and Value > Field.Max) or (type(Value) == "string" and #Value > Field.Max)) then
+			Message = Field.MaxMessage or ((Field.Title or Field.Id) .. " must be at most " .. tostring(Field.Max))
+		elseif not Empty and Field.Pattern and type(Value) == "string" and not Value:match(Field.Pattern) then
+			Message = Field.PatternMessage or ((Field.Title or Field.Id) .. " has an invalid format")
+		elseif Field.Validator then
+			local Success, Valid, CustomMessage = pcall(Field.Validator, Value, self.Values, self)
+			if not Success or Valid == false then Message = CustomMessage or Field.ValidationMessage or "Invalid value" end
+		end
+		self:SetFieldError(Field.Id, Message)
+		return Message == nil, Message
+	end
+
+	function Controller:Validate()
+		local Valid, FirstError = true, nil
+		for _, Field in ipairs(self.Fields) do
+			local FieldValid, Message = self:ValidateField(Field)
+			if not FieldValid then Valid = false; FirstError = FirstError or Message end
+		end
+		return Valid, FirstError
 	end
 
 	local function AddInput(Field)
-		AddLabel(Field.Title or Field.Id)
+		AddLabel(Field)
+		local Multiline = Field.Type == "Multiline" or Field.Multiline == true
 		local Holder = New("Frame", {
-			Size = UDim2.new(1, -4, 0, 36),
+			Size = UDim2.new(1, -4, 0, Multiline and (Field.Height or 82) or 36),
 			BackgroundTransparency = Config.InputTransparency or 0.02,
 			ThemeTag = { BackgroundColor3 = "DialogInput" },
 			Parent = Form,
@@ -242,6 +332,9 @@ function StandalonePanel:CreatePanel(Config)
 			Text = tostring(Field.Default or ""),
 			PlaceholderText = Field.Placeholder or "",
 			ClearTextOnFocus = false,
+			MultiLine = Multiline,
+			TextWrapped = Multiline,
+			TextYAlignment = Multiline and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center,
 			TextSize = 13,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
@@ -255,6 +348,7 @@ function StandalonePanel:CreatePanel(Config)
 			local Value = Input.Text
 			if Field.Type == "Number" then Value = tonumber(Value) end
 			Controller.Values[Field.Id] = Value
+			if Controller.ErrorLabels[Field.Id] and Controller.ErrorLabels[Field.Id].Visible then Controller:ValidateField(Field) end
 			if Field.OnChanged then Library:SafeCallback(Field.OnChanged, Value, Controller) end
 		end, Gui)
 		Creator.AddSignal(Input.Focused, function()
@@ -265,10 +359,11 @@ function StandalonePanel:CreatePanel(Config)
 			Indicator.Size = UDim2.new(1, -4, 0, 1)
 			Creator.OverrideTag(Indicator, { BackgroundColor3 = "DialogInputLine" })
 		end, Gui)
+		AddError(Field)
 	end
 
 	local function AddChoice(Field)
-		AddLabel(Field.Title or Field.Id)
+		AddLabel(Field)
 		local Holder = New("Frame", {
 			Size = UDim2.new(1, -4, 0, math.ceil(#(Field.Values or {}) / 2) * 32),
 			BackgroundTransparency = 1,
@@ -291,6 +386,7 @@ function StandalonePanel:CreatePanel(Config)
 					Creator.OverrideTag(Stroke, { Color = Selected and "Accent" or "DialogButtonBorder" })
 				end
 			end
+			if Controller.ErrorLabels[Field.Id] and Controller.ErrorLabels[Field.Id].Visible then Controller:ValidateField(Field) end
 			if Field.OnChanged then Library:SafeCallback(Field.OnChanged, Value, Controller) end
 		end
 		Controller.ChoiceSelectors[Field.Id] = Select
@@ -312,17 +408,75 @@ function StandalonePanel:CreatePanel(Config)
 			Creator.AddSignal(Button.Activated, function() Select(Value) end, Gui)
 		end
 		Select(Controller.Values[Field.Id])
+		AddError(Field)
+	end
+
+	local function AddToggle(Field)
+		AddLabel(Field)
+		local Button = New("TextButton", {
+			Size = UDim2.new(1, -4, 0, 34), BackgroundTransparency = 0.18, Text = "", ThemeTag = { BackgroundColor3 = "DialogButton" }, Parent = Form,
+		}, { New("UICorner", { CornerRadius = UDim.new(0, 5) }), New("UIStroke", { Transparency = 0.5, ThemeTag = { Color = "DialogButtonBorder" } }) })
+		local State = New("TextLabel", {
+			Size = UDim2.new(1, -16, 1, 0), Position = UDim2.fromOffset(8, 0), BackgroundTransparency = 1,
+			TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left,
+			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold), Parent = Button,
+		})
+		local function Set(Value)
+			Value = Value == true
+			Controller.Values[Field.Id] = Value
+			State.Text = Value and (Field.OnText or "On") or (Field.OffText or "Off")
+			State.TextColor3 = Creator.GetThemeProperty(Value and "Accent" or "SubText")
+			if Controller.ErrorLabels[Field.Id] and Controller.ErrorLabels[Field.Id].Visible then Controller:ValidateField(Field) end
+			if Field.OnChanged then Library:SafeCallback(Field.OnChanged, Value, Controller) end
+		end
+		Controller.Toggles[Field.Id] = Set
+		Creator.AddSignal(Button.Activated, function() Set(not Controller.Values[Field.Id]) end, Gui)
+		Set(Field.Default == true)
+		AddError(Field)
+	end
+
+	local function AddDropdown(Field)
+		AddLabel(Field)
+		local Display = New("TextButton", {
+			Size = UDim2.new(1, -4, 0, 36), BackgroundTransparency = 0.02, Text = "", TextSize = 12,
+			TextXAlignment = Enum.TextXAlignment.Left, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+			ThemeTag = { BackgroundColor3 = "DialogInput", TextColor3 = "Text" }, Parent = Form,
+		}, { New("UICorner", { CornerRadius = UDim.new(0, 5) }), New("UIPadding", { PaddingLeft = UDim.new(0, 9) }), New("UIStroke", { Transparency = 0.35, ThemeTag = { Color = "DialogInputLine" } }) })
+		local List = New("Frame", { Size = UDim2.new(1, -4, 0, 0), BackgroundTransparency = 0.04, Visible = false, ThemeTag = { BackgroundColor3 = "DialogHolder" }, Parent = Form }, {
+			New("UICorner", { CornerRadius = UDim.new(0, 5) }), New("UIListLayout", { Padding = UDim.new(0, 3) }), New("UIPadding", { PaddingTop = UDim.new(0, 4), PaddingBottom = UDim.new(0, 4), PaddingLeft = UDim.new(0, 4), PaddingRight = UDim.new(0, 4) }),
+		})
+		local function Select(Value)
+			Controller.Values[Field.Id] = Value
+			Display.Text = tostring(Value or Field.Placeholder or "Select...") .. "  v"
+			List.Visible = false; List.Size = UDim2.new(1, -4, 0, 0); RefreshCanvas()
+			if Controller.ErrorLabels[Field.Id] and Controller.ErrorLabels[Field.Id].Visible then Controller:ValidateField(Field) end
+			if Field.OnChanged then Library:SafeCallback(Field.OnChanged, Value, Controller) end
+		end
+		Controller.Dropdowns[Field.Id] = { Display = Display, List = List }
+		Controller.DropdownSelectors[Field.Id] = Select
+		for _, Value in ipairs(Field.Values or {}) do
+			local Option = New("TextButton", { Size = UDim2.new(1, 0, 0, 27), BackgroundTransparency = 0.25, Text = tostring(Value), TextSize = 11, ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "Text" }, Parent = List }, { New("UICorner", { CornerRadius = UDim.new(0, 4) }) })
+			Creator.AddSignal(Option.Activated, function() Select(Value) end, Gui)
+		end
+		Creator.AddSignal(Display.Activated, function()
+			List.Visible = not List.Visible
+			List.Size = UDim2.new(1, -4, 0, List.Visible and (#(Field.Values or {}) * 30 + 8) or 0)
+			RefreshCanvas()
+		end, Gui)
+		Select(Field.Default or Field.Values and Field.Values[1])
+		AddError(Field)
 	end
 
 	for _, Field in ipairs(Config.Fields or {}) do
 		assert(Field.Id, "StandalonePanel - Every field requires Id")
-		if Field.Type == "Choice" then AddChoice(Field) else AddInput(Field) end
+		table.insert(Controller.Fields, Field)
+		if Field.Type == "Choice" then AddChoice(Field)
+		elseif Field.Type == "Toggle" then AddToggle(Field)
+		elseif Field.Type == "Dropdown" then AddDropdown(Field)
+		else AddInput(Field) end
 	end
 
-	task.defer(function()
-		local Layout = Form:FindFirstChildOfClass("UIListLayout")
-		if Layout then Form.CanvasSize = UDim2.fromOffset(0, Layout.AbsoluteContentSize.Y + 4) end
-	end)
+	RefreshCanvas()
 
 	local Footer = New("Frame", { Size = UDim2.new(1, 0, 0, 60), Position = UDim2.new(0, 0, 1, -60), ThemeTag = { BackgroundColor3 = "DialogHolder" }, Parent = Surface }, {
 		New("Frame", { Size = UDim2.new(1, 0, 0, 1), ThemeTag = { BackgroundColor3 = "DialogHolderLine" } }),
@@ -339,6 +493,43 @@ function StandalonePanel:CreatePanel(Config)
 		New("UICorner", { CornerRadius = UDim.new(0, 5) }),
 		New("UIStroke", { Transparency = 0.65, ApplyStrokeMode = Enum.ApplyStrokeMode.Border, ThemeTag = { Color = "DialogButtonBorder" } }),
 	})
+	if Config.ActionIcon then
+		New("ImageLabel", {
+			Size = UDim2.fromOffset(15, 15), Position = UDim2.fromOffset(10, 9), BackgroundTransparency = 1,
+			Image = Library:GetIcon(Config.ActionIcon) or Config.ActionIcon, ThemeTag = { ImageColor3 = "Text" }, Parent = Action,
+		})
+	end
+
+	local ConfirmConfig = type(Config.Confirm) == "table" and Config.Confirm or {}
+	local ConfirmOverlay = New("Frame", {
+		Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 0.35,
+		Visible = false, ZIndex = 50, Parent = Surface,
+	})
+	local ConfirmCard = New("Frame", {
+		Size = UDim2.new(0.82, 0, 0, 170), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5),
+		ZIndex = 51, ThemeTag = { BackgroundColor3 = "Dialog" }, Parent = ConfirmOverlay,
+	}, { New("UISizeConstraint", { MinSize = Vector2.new(280, 170), MaxSize = Vector2.new(440, 190) }), New("UICorner", { CornerRadius = UDim.new(0, 7) }), New("UIStroke", { Transparency = 0.4, ThemeTag = { Color = "DialogBorder" } }) })
+	New("TextLabel", {
+		Size = UDim2.new(1, -32, 0, 30), Position = UDim2.fromOffset(16, 14), BackgroundTransparency = 1, ZIndex = 52,
+		Text = ConfirmConfig.Title or "Confirm action", TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold), ThemeTag = { TextColor3 = "Text" }, Parent = ConfirmCard,
+	})
+	New("TextLabel", {
+		Size = UDim2.new(1, -32, 0, 54), Position = UDim2.fromOffset(16, 48), BackgroundTransparency = 1, ZIndex = 52,
+		Text = ConfirmConfig.Content or "Are you sure you want to continue?", TextSize = 12, TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), ThemeTag = { TextColor3 = "SubText" }, Parent = ConfirmCard,
+	})
+	local ConfirmYes = New("TextButton", {
+		Size = UDim2.new(0.5, -20, 0, 34), Position = UDim2.new(0.5, 4, 1, -48), ZIndex = 52,
+		Text = ConfirmConfig.ConfirmText or "Confirm", TextSize = 12, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+		ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "Accent" }, Parent = ConfirmCard,
+	}, { New("UICorner", { CornerRadius = UDim.new(0, 5) }), New("UIStroke", { Transparency = 0.45, ThemeTag = { Color = "Accent" } }) })
+	local ConfirmNo = New("TextButton", {
+		Size = UDim2.new(0.5, -20, 0, 34), Position = UDim2.new(0, 16, 1, -48), ZIndex = 52,
+		Text = ConfirmConfig.CancelText or "Cancel", TextSize = 12, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+		ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "Text" }, Parent = ConfirmCard,
+	}, { New("UICorner", { CornerRadius = UDim.new(0, 5) }), New("UIStroke", { Transparency = 0.6, ThemeTag = { Color = "DialogButtonBorder" } }) })
 
 	function Controller:SetMetric(Value, Title)
 		if Title then Config.MetricTitle = Title end
@@ -351,16 +542,34 @@ function StandalonePanel:CreatePanel(Config)
 	end
 
 	function Controller:AppendLog(Text)
-		table.insert(self.Logs, tostring(Text))
+		local Entry = Config.HistoryTimestamp == false and tostring(Text) or ("[" .. os.date(Config.TimestampFormat or "%H:%M:%S") .. "] " .. tostring(Text))
+		table.insert(self.Logs, Entry)
 		local Limit = Config.LogLimit or 30
 		while #self.Logs > Limit do table.remove(self.Logs, 1) end
 		self:SetPreview(table.concat(self.Logs, "\n"), Config.PreviewTitle or "History")
+		HistoryButton.Text = HistoryBaseText .. " (" .. tostring(#self.Logs) .. ")"
+	end
+
+	function Controller:ClearHistory()
+		table.clear(self.Logs)
+		self:SetPreview("", Config.PreviewTitle or "History")
+		HistoryButton.Text = HistoryBaseText .. " (0)"
+	end
+
+	function Controller:CopyHistory()
+		local Text = table.concat(self.Logs, "\n")
+		local SetClipboard = setclipboard or toclipboard or (Clipboard and Clipboard.set)
+		if not SetClipboard then return false, "clipboard is not supported" end
+		local Success, Error = pcall(SetClipboard, Text)
+		return Success, Error
 	end
 
 	function Controller:SetValue(Id, Value)
 		self.Values[Id] = Value
 		if self.Inputs[Id] then self.Inputs[Id].Text = tostring(Value or "") end
 		if self.ChoiceSelectors[Id] then self.ChoiceSelectors[Id](Value) end
+		if self.Toggles[Id] then self.Toggles[Id](Value) end
+		if self.DropdownSelectors[Id] then self.DropdownSelectors[Id](Value) end
 	end
 
 	function Controller:SetSubmitting(Value, Text)
@@ -370,22 +579,49 @@ function StandalonePanel:CreatePanel(Config)
 		Action.BackgroundTransparency = self.Submitting and 0.45 or 0
 	end
 
-	function Controller:Submit()
+	function Controller:SetSuccess(Text)
+		self.Submitting = true
+		Action.Active = false
+		Action.Text = Text or Config.SuccessText or "Success"
+		Action.BackgroundColor3 = Config.SuccessColor or Color3.fromRGB(70, 180, 115)
+		Action.TextColor3 = Color3.new(1, 1, 1)
+		task.delay(Config.SuccessDuration or 1.5, function()
+			if not Action.Parent then return end
+			Creator.OverrideTag(Action, { BackgroundColor3 = "DialogButton", TextColor3 = "Text" })
+			self:SetSubmitting(false)
+		end)
+	end
+
+	function Controller:PerformSubmit()
 		if self.Submitting then return end
 		self:SetSubmitting(true)
 		task.spawn(function()
 			local Success, Result = xpcall(function()
 				return Config.OnSubmit(self.Values, self)
 			end, debug.traceback)
-			self:SetSubmitting(false)
 			if not Success then
+				self:SetSubmitting(false)
 				self:AppendLog("Error: " .. tostring(Result):match("^[^\n]+"))
 				Library:Notify({ Title = Config.Title or "Standalone Panel", Content = "Action failed", SubContent = tostring(Result):match("^[^\n]+"), Type = "Error", Duration = 6 })
 				warn(Result)
-			elseif type(Result) == "string" then
-				self:AppendLog(Result)
+			else
+				if type(Result) == "string" then self:AppendLog(Result) end
+				self:SetSuccess()
 			end
 		end)
+	end
+
+	function Controller:Submit(SkipConfirm)
+		if self.Submitting then return end
+		local Valid = self:Validate()
+		if not Valid then
+			Action.Text = Config.ValidationFailedText or "Check required fields"
+			task.delay(1.2, function() if Action.Parent and not self.Submitting then Action.Text = Config.ActionText or "Submit" end end)
+			return false
+		end
+		if Config.Confirm and not SkipConfirm then ConfirmOverlay.Visible = true; return true end
+		self:PerformSubmit()
+		return true
 	end
 
 	function Controller:Open()
@@ -408,6 +644,13 @@ function StandalonePanel:CreatePanel(Config)
 	end
 
 	Creator.AddSignal(Action.Activated, function() Controller:Submit() end, Gui)
+	Creator.AddSignal(ConfirmYes.Activated, function() ConfirmOverlay.Visible = false; Controller:Submit(true) end, Gui)
+	Creator.AddSignal(ConfirmNo.Activated, function() ConfirmOverlay.Visible = false end, Gui)
+	Creator.AddSignal(ClearHistoryButton.Activated, function() Controller:ClearHistory() end, Gui)
+	Creator.AddSignal(CopyHistoryButton.Activated, function()
+		local Success, Error = Controller:CopyHistory()
+		Library:Notify({ Title = Config.Title or "Standalone Panel", Content = Success and "History copied" or "Unable to copy history", SubContent = Success and nil or tostring(Error), Type = Success and "Success" or "Error", Duration = 3 })
+	end, Gui)
 	Creator.AddSignal(Action.MouseEnter, function() if not Controller.Submitting then Action.BackgroundTransparency = 0.15 end end, Gui)
 	Creator.AddSignal(Action.MouseLeave, function() Action.BackgroundTransparency = Controller.Submitting and 0.45 or 0 end, Gui)
 	Creator.AddSignal(CloseButton.Activated, function()
@@ -422,7 +665,7 @@ function StandalonePanel:CreatePanel(Config)
 
 	Creator.AddSignal(UserInputService.InputBegan, function(Input)
 		if Controller.Opened and Config.CloseOnEscape ~= false and Input.KeyCode == Enum.KeyCode.Escape then
-			Controller:Close()
+			if ConfirmOverlay.Visible then ConfirmOverlay.Visible = false else Controller:Close() end
 		end
 	end, Gui)
 

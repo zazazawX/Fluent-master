@@ -14,10 +14,12 @@ function Element:New(Idx, Config)
 	assert(Config.Title, "Toggle - Missing Title")
 
 	local Toggle = {
+		Title = Config.Title,
 		Value = Config.Default or false,
 		Callback = Config.Callback or function(Value) end,
 		Type = "Toggle",
 	}
+	Library:RegisterCallbackContext(Toggle.Callback, { Title = Config.Title, Type = "Toggle", Id = Idx })
 
 	local ToggleFrame = require(Components.Element)(Config.Title, Config.Description, self.Container, true, Config.Tooltip)
 	ToggleFrame.DescLabel.Size = UDim2.new(1, -54, 0, 14)

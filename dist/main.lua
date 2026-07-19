@@ -498,6 +498,93 @@ end
 
 end)
 
+register("Components.CommandPalette", function()
+local script = create_mock_script("Components.CommandPalette")
+local UserInputService = game:GetService("UserInputService")
+local Creator = require(script.Parent.Parent.Creator)
+local New = Creator.New
+
+return function(Library)
+	local Palette = { Opened = false, Results = {} }
+
+	local Tint = New("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 0.45, Visible = false, ZIndex = 100, Parent = Library.Layers.Overlay })
+	local Dismiss = New("TextButton", { Text = "", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ZIndex = 100, Parent = Tint })
+	local Panel = New("Frame", { Size = UDim2.new(0.9, 0, 0, 330), Position = UDim2.new(0.5, 0, 0.18, 0), AnchorPoint = Vector2.new(0.5, 0), ThemeTag = { BackgroundColor3 = "Dialog" }, Parent = Tint }, {
+		New("UISizeConstraint", { MinSize = Vector2.new(300, 260), MaxSize = Vector2.new(560, 330) }),
+		New("UICorner", { CornerRadius = UDim.new(0, 8) }),
+		New("UIStroke", { Transparency = 0.45, ThemeTag = { Color = "DialogBorder" } }),
+	})
+	local Search = New("TextBox", { Size = UDim2.new(1, -32, 0, 42), Position = UDim2.fromOffset(16, 14), PlaceholderText = "Type a command...", Text = "", TextSize = 16, BackgroundTransparency = 0.1, ThemeTag = { BackgroundColor3 = "DialogInput", TextColor3 = "Text", PlaceholderColor3 = "SubText" }, Parent = Panel }, {
+		New("UICorner", { CornerRadius = UDim.new(0, 6) }),
+		New("UIStroke", { Transparency = 0.55, ThemeTag = { Color = "DialogInputLine" } }),
+	})
+	local Results = New("ScrollingFrame", { Size = UDim2.new(1, -32, 1, -78), Position = UDim2.fromOffset(16, 66), BackgroundTransparency = 1, BorderSizePixel = 0, ScrollBarThickness = 3, CanvasSize = UDim2.new(), Parent = Panel }, {
+		New("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder }),
+	})
+
+	local function ClearResults()
+		for _, Child in ipairs(Results:GetChildren()) do if Child:IsA("TextButton") then Child:Destroy() end end
+		table.clear(Palette.Results)
+	end
+
+	local function Matches(Command, Query)
+		local Text = (tostring(Command.Title) .. " " .. tostring(Command.Id)):lower()
+		for _, Keyword in ipairs(Command.Keywords or {}) do Text = Text .. " " .. tostring(Keyword):lower() end
+		return Query == "" or Text:find(Query, 1, true) ~= nil
+	end
+
+	function Palette:Refresh()
+		ClearResults()
+		local Query = Search.Text:lower()
+		for _, Command in ipairs(Library:GetCommands()) do
+			if #Palette.Results >= 7 then break end
+			if Matches(Command, Query) then
+				table.insert(Palette.Results, Command)
+				local Button = New("TextButton", { Size = UDim2.new(1, -2, 0, 34), Text = "  " .. Command.Title, TextSize = 13, TextXAlignment = Enum.TextXAlignment.Left, BackgroundTransparency = 0.2, ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "Text" }, Parent = Results }, {
+					New("UICorner", { CornerRadius = UDim.new(0, 5) }),
+					New("UIStroke", { Transparency = 0.7, ThemeTag = { Color = "DialogButtonBorder" } }),
+				})
+				Creator.AddSignal(Button.Activated, function() Palette:Close(); Library:ExecuteCommand(Command) end, Button)
+			end
+		end
+		Results.CanvasSize = UDim2.fromOffset(0, #Palette.Results * 40)
+	end
+
+	function Palette:Open()
+		Palette.Opened = true
+		Tint.Visible = true
+		Search.Text = ""
+		Palette:Refresh()
+		task.defer(function() Search:CaptureFocus() end)
+	end
+
+	function Palette:Close()
+		Palette.Opened = false
+		Tint.Visible = false
+		Search:ReleaseFocus()
+	end
+
+	Creator.AddSignal(Search:GetPropertyChangedSignal("Text"), function() Palette:Refresh() end, Tint)
+	Creator.AddSignal(Search.FocusLost, function(EnterPressed)
+		if EnterPressed and Palette.Results[1] then local Command = Palette.Results[1]; Palette:Close(); Library:ExecuteCommand(Command) end
+	end, Tint)
+	Creator.AddSignal(Dismiss.Activated, function() Palette:Close() end, Tint)
+	Creator.AddSignal(UserInputService.InputBegan, function(Input, Processed)
+		if Input.KeyCode == Enum.KeyCode.K and (UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)) then
+			if not Processed or Palette.Opened then if Palette.Opened then Palette:Close() else Palette:Open() end end
+		elseif Palette.Opened and Input.KeyCode == Enum.KeyCode.Escape then Palette:Close() end
+	end, Tint)
+
+	if UserInputService.TouchEnabled then
+		local MobileButton = New("TextButton", { Size = UDim2.fromOffset(46, 38), Position = UDim2.new(0, 12, 1, -54), Text = "Find", TextSize = 12, BackgroundTransparency = 0.08, ThemeTag = { BackgroundColor3 = "Dialog", TextColor3 = "Text" }, Parent = Library.Layers.Overlay }, { New("UICorner", { CornerRadius = UDim.new(0, 7) }) })
+		Creator.AddSignal(MobileButton.Activated, function() Palette:Open() end, MobileButton)
+	end
+
+	return Palette
+end
+
+end)
+
 register("Components.Dialog", function()
 local script = create_mock_script("Components.Dialog")
 local Root = script.Parent.Parent
@@ -3430,6 +3517,15 @@ Element.__type = "Button"
 function Element:New(Config)
 	assert(Config.Title, "Button - Missing Title")
 	Config.Callback = Config.Callback or function() end
+	self.Library:RegisterCallbackContext(Config.Callback, { Title = Config.Title, Type = "Button" })
+	if Config.CommandId then
+		self.Library:RegisterCommand({
+			Id = Config.CommandId,
+			Title = Config.CommandTitle or Config.Title,
+			Keywords = Config.CommandKeywords,
+			Callback = Config.Callback,
+		})
+	end
 
 	local ButtonFrame = require(Components.Element)(Config.Title, Config.Description, self.Container, true, Config.Tooltip)
 
@@ -5682,10 +5778,12 @@ function Element:New(Idx, Config)
 	assert(Config.Title, "Toggle - Missing Title")
 
 	local Toggle = {
+		Title = Config.Title,
 		Value = Config.Default or false,
 		Callback = Config.Callback or function(Value) end,
 		Type = "Toggle",
 	}
+	Library:RegisterCallbackContext(Toggle.Callback, { Title = Config.Title, Type = "Toggle", Id = Idx })
 
 	local ToggleFrame = require(Components.Element)(Config.Title, Config.Description, self.Container, true, Config.Tooltip)
 	ToggleFrame.DescLabel.Size = UDim2.new(1, -54, 0, 14)
@@ -6778,6 +6876,10 @@ local Library = {
 	ActiveDropdown = nil,
 	ActiveDialog = nil,
 	Options = {},
+	Commands = {},
+	Errors = {},
+	DisabledCallbacks = setmetatable({}, { __mode = "k" }),
+	CallbackContexts = setmetatable({}, { __mode = "k" }),
 	Themes = Themes.Names,
 	Types = require(Root.Types),
 	ThemeContrastReports = ThemeValidator.ValidateAll(Themes, 4.5),
@@ -6804,6 +6906,54 @@ local Library = {
 	Creator = Creator,
 	Acrylic = Acrylic,
 }
+
+function Library:RegisterCommand(Command)
+	assert(type(Command) == "table" and Command.Id and Command.Title and type(Command.Callback) == "function", "RegisterCommand - Id, Title and Callback are required")
+	Library.Commands[Command.Id] = Command
+	return Command
+end
+
+function Library:UnregisterCommand(Id)
+	Library.Commands[Id] = nil
+end
+
+function Library:GetCommands()
+	local Result = {}
+	for _, Command in pairs(Library.Commands) do table.insert(Result, Command) end
+	for Id, Option in pairs(Library.Options) do
+		if Option.Type == "Toggle" and type(Option.SetValue) == "function" then
+			table.insert(Result, {
+				Id = "toggle:" .. tostring(Id),
+				Title = (Option.Value and "Disable " or "Enable ") .. tostring(Option.Title or Id),
+				Keywords = { tostring(Id), "toggle" },
+				Callback = function() Option:SetValue(not Option.Value) end,
+			})
+		end
+	end
+	return Result
+end
+
+function Library:ExecuteCommand(Command)
+	if type(Command) == "string" then Command = Library.Commands[Command] end
+	if not Command then return false end
+	Library:SafeCallback(Command.Callback)
+	return true
+end
+
+function Library:RegisterCallbackContext(Callback, Context)
+	if type(Callback) == "function" then
+		Library.CallbackContexts[Callback] = Context
+	end
+	return Callback
+end
+
+function Library:GetErrors()
+	return Library.Errors
+end
+
+function Library:ClearErrors()
+	table.clear(Library.Errors)
+end
 
 function Library:GetLayer(Name)
 	return Library.Layers[Name] or Library.SafeArea
@@ -6842,27 +6992,34 @@ function Library:SafeCallback(Function, ...)
 	if not Function then
 		return
 	end
+	if Library.DisabledCallbacks[Function] then return end
+	local Arguments = table.pack(...)
+	local Context = Library.CallbackContexts[Function]
 
-	local Success, Event = pcall(Function, ...)
+	local Success, Event = xpcall(function()
+		return Function(table.unpack(Arguments, 1, Arguments.n))
+	end, function(Error)
+		return debug.traceback(tostring(Error), 2)
+	end)
 	if not Success then
-		local _, i = Event:find(":%d+: ")
-
-		if not i then
-			return Library:Notify({
-				Title = "Interface",
-				Content = "Callback error",
-				SubContent = Event,
-				Duration = 5,
+		local Record = { Id = #Library.Errors + 1, Message = tostring(Event):match("^[^\n]+") or "Callback error", Traceback = tostring(Event), Callback = Function, Arguments = Arguments, Context = Context, Count = 1, Time = os.time() }
+		table.insert(Library.Errors, Record)
+		local ErrorTitle = Context and Context.Title and (Context.Title .. " encountered an error") or "Callback error"
+		Library:Notify({ Title = ErrorTitle, Content = Record.Message, SubContent = "Open the error dialog for details.", Duration = 6 })
+		if Library.Window and not Library.DialogOpen then
+			Library.Window:Dialog({
+				Title = ErrorTitle,
+				Content = Record.Message,
+				Buttons = {
+					{ Title = "Retry", Callback = function() Library:SafeCallback(Function, table.unpack(Arguments, 1, Arguments.n)) end },
+					{ Title = "Disable", Callback = function() Library.DisabledCallbacks[Function] = true end },
+					{ Title = "Copy error", Callback = function() if setclipboard then setclipboard(Record.Traceback) end end },
+				},
 			})
 		end
-
-		return Library:Notify({
-			Title = "Interface",
-			Content = "Callback error",
-			SubContent = Event:sub(i + 1),
-			Duration = 5,
-		})
+		return nil, Event
 	end
+	return Event
 end
 
 function Library:Round(Number, Factor)
@@ -7235,6 +7392,38 @@ end
 
 function Library:Notify(Config)
 	return NotificationModule:New(Config)
+end
+
+Library.CommandPalette = require(Components.CommandPalette)(Library)
+
+function Library:OpenCommandPalette()
+	Library.CommandPalette:Open()
+end
+
+function Library:CloseCommandPalette()
+	Library.CommandPalette:Close()
+end
+
+Library:RegisterCommand({
+	Id = "disable-all",
+	Title = "Disable all toggles",
+	Keywords = { "stop", "off", "reset" },
+	Callback = function()
+		for _, Option in pairs(Library.Options) do
+			if Option.Type == "Toggle" and Option.Value and type(Option.SetValue) == "function" then
+				Option:SetValue(false)
+			end
+		end
+	end,
+})
+
+for _, ThemeName in ipairs(Library.Themes) do
+	Library:RegisterCommand({
+		Id = "theme:" .. ThemeName,
+		Title = "Change theme to " .. ThemeName,
+		Keywords = { "appearance", "color", "theme" },
+		Callback = function() Library:SetTheme(ThemeName) end,
+	})
 end
 
 if getgenv then

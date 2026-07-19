@@ -294,10 +294,10 @@ local KeySystem = {} do
 			Parent = TextboxFrame,
 		})
 		local MaskLabel = New("TextLabel", { Size = UDim2.new(1, -54, 1, 0), Position = UDim2.fromOffset(10, 0), BackgroundTransparency = 1, Text = "", TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), ThemeTag = { TextColor3 = "Text" }, Parent = TextboxFrame })
-		local RevealButton = New("TextButton", { Size = UDim2.fromOffset(42, 34), Position = UDim2.new(1, -44, 0, 2), BackgroundTransparency = 1, Text = "SHOW", TextSize = 10, ThemeTag = { TextColor3 = "SubText" }, Parent = TextboxFrame })
+		local RevealButton = New("TextButton", { Size = UDim2.fromOffset(52, 36), Position = UDim2.new(1, -54, 0, 1), BackgroundTransparency = 1, Text = "Show", TextSize = 13, ThemeTag = { TextColor3 = "SubText" }, Parent = TextboxFrame })
 		local StatusLabel = New("TextLabel", { Size = UDim2.new(1, -40, 0, 18), Position = UDim2.fromOffset(20, 127), BackgroundTransparency = 1, Text = "", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, ThemeTag = { TextColor3 = "SubText" }, Parent = KeySystemPaint.Frame })
-		local GetKeyButton = New("TextButton", { Size = UDim2.new(0.5, -20, 0, 26), Position = UDim2.fromOffset(20, 153), BackgroundTransparency = 1, Text = "Get Key", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Left, ThemeTag = { TextColor3 = "Accent" }, Parent = KeySystemPaint.Frame })
-		local DiscordButton = Config.Discord and New("TextButton", { Size = UDim2.new(0.5, -20, 0, 26), Position = UDim2.new(0.5, 0, 0, 153), BackgroundTransparency = 1, Text = "Discord", TextSize = 12, TextXAlignment = Enum.TextXAlignment.Right, ThemeTag = { TextColor3 = "SubText" }, Parent = KeySystemPaint.Frame }) or nil
+		local GetKeyButton = New("TextButton", { Size = UDim2.new(0.5, -20, 0, 32), Position = UDim2.fromOffset(20, 150), BackgroundTransparency = 1, Text = "Get Key", TextSize = 14, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), TextXAlignment = Enum.TextXAlignment.Left, ThemeTag = { TextColor3 = "Accent" }, Parent = KeySystemPaint.Frame })
+		local DiscordButton = Config.Discord and New("TextButton", { Size = UDim2.new(0.5, -20, 0, 32), Position = UDim2.new(0.5, 0, 0, 150), BackgroundTransparency = 1, Text = "Discord", TextSize = 14, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), TextXAlignment = Enum.TextXAlignment.Right, ThemeTag = { TextColor3 = "SubText" }, Parent = KeySystemPaint.Frame }) or nil
 		local VerifyButton = New("TextButton", { Size = UDim2.new(1, -40, 0, 36), Position = UDim2.fromOffset(20, 20), BackgroundTransparency = 0, Text = "Verify Key", TextSize = 14, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium, Enum.FontStyle.Normal), ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "Text" }, Parent = ButtonHolder }, { New("UICorner", { CornerRadius = UDim.new(0, 4) }), New("UIStroke", { ApplyStrokeMode = Enum.ApplyStrokeMode.Border, Transparency = 0.65, ThemeTag = { Color = "DialogButtonBorder" } }) })
 		local Spinner = New("TextLabel", { Size = UDim2.fromOffset(18, 18), Position = UDim2.new(0.5, -62, 0, 29), BackgroundTransparency = 1, Text = "|", TextSize = 15, Visible = false, ThemeTag = { TextColor3 = "Text" }, Parent = ButtonHolder })
 		local CloseButton = New("TextButton", { Size = UDim2.fromOffset(34, 34), Position = UDim2.new(1, -40, 0, 8), BackgroundTransparency = 1, Text = "X", TextSize = 13, ThemeTag = { TextColor3 = "Text", BackgroundColor3 = "Text" }, Parent = KeySystemPaint.Frame }, { New("UICorner", { CornerRadius = UDim.new(0, 7) }) })
@@ -313,7 +313,7 @@ local KeySystem = {} do
 		RevealButton.Activated:Connect(function()
 			KeyVisible = not KeyVisible
 			Input.TextTransparency = KeyVisible and 0 or 1
-			RevealButton.Text = KeyVisible and "HIDE" or "SHOW"
+			RevealButton.Text = KeyVisible and "Hide" or "Show"
 			UpdateMaskedText()
 		end)
 		CloseButton.Activated:Connect(function()

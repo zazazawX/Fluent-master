@@ -19,7 +19,7 @@ local Panel = StandalonePanel:CreatePanel({
     Acrylic = false,
     OverlayTransparency = 0.72,
 
-    FormWidthScale = 0.44,
+    FormWidthScale = 0.42,
     StackBreakpoint = 430,
     InputWidthScale = 0.82,
     InputHeight = 32,

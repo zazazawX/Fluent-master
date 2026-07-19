@@ -73,8 +73,8 @@ function StandalonePanel:CreatePanel(Config)
 		Parent = Overlay,
 	}, {
 		New("UISizeConstraint", {
-			MinSize = Vector2.new(320, 360),
-			MaxSize = Vector2.new(760, 520),
+			MinSize = Vector2.new(320, 340),
+			MaxSize = Config.MaxSize or Vector2.new(680, 450),
 		}),
 	})
 	New("ImageLabel", {
@@ -165,14 +165,14 @@ function StandalonePanel:CreatePanel(Config)
 	})
 
 	local Body = New("Frame", {
-		Size = UDim2.new(1, -28, 1, -126),
+		Size = UDim2.new(1, -28, 1, -72),
 		Position = UDim2.fromOffset(14, 58),
 		BackgroundTransparency = 1,
 		Parent = Surface,
 	})
 
 	local Form = New("ScrollingFrame", {
-		Size = UDim2.new(Config.FormWidthScale or 0.44, -6, 1, 0),
+		Size = UDim2.new(Config.FormWidthScale or 0.42, -6, 1, 0),
 		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		ScrollBarThickness = 3,
@@ -183,8 +183,8 @@ function StandalonePanel:CreatePanel(Config)
 	})
 
 	local Preview = New("Frame", {
-		Size = UDim2.new(1 - (Config.FormWidthScale or 0.44), -6, 1, 0),
-		Position = UDim2.new(Config.FormWidthScale or 0.44, 6, 0, 0),
+		Size = UDim2.new(1 - (Config.FormWidthScale or 0.42), -6, 1, -66),
+		Position = UDim2.new(Config.FormWidthScale or 0.42, 6, 0, 0),
 		BackgroundTransparency = Config.PreviewTransparency or 0.04,
 		ThemeTag = { BackgroundColor3 = "DialogInput" },
 		Parent = Body,
@@ -515,7 +515,12 @@ function StandalonePanel:CreatePanel(Config)
 
 	RefreshCanvas()
 
-	local Footer = New("Frame", { Size = UDim2.new(1, 0, 0, 60), Position = UDim2.new(0, 0, 1, -60), ThemeTag = { BackgroundColor3 = "DialogHolder" }, Parent = Surface }, {
+	local Footer = New("Frame", {
+		Size = UDim2.new(1 - (Config.FormWidthScale or 0.42), -6, 0, 60),
+		Position = UDim2.new(Config.FormWidthScale or 0.42, 6, 1, -60),
+		ThemeTag = { BackgroundColor3 = "DialogHolder" },
+		Parent = Body,
+	}, {
 		New("Frame", { Size = UDim2.new(1, 0, 0, 1), ThemeTag = { BackgroundColor3 = "DialogHolderLine" } }),
 	})
 	local Action = New("TextButton", {
@@ -713,18 +718,24 @@ function StandalonePanel:CreatePanel(Config)
 		Panel.Position = UDim2.fromScale(0.5, 0.5)
 		Preview.Visible = self.HistoryVisible
 		if not self.HistoryVisible then
-			Form.Size = UDim2.new(1, 0, 1, 0)
+			Form.Size = UDim2.new(1, 0, 1, -66)
+			Footer.Size = UDim2.new(1, 0, 0, 60)
+			Footer.Position = UDim2.new(0, 0, 1, -60)
 			return
 		end
 		if Panel.AbsoluteSize.X < (Config.StackBreakpoint or 430) then
 			Form.Size = UDim2.new(1, 0, 0.48, -4)
-			Preview.Size = UDim2.new(1, 0, 0.52, -4)
+			Preview.Size = UDim2.new(1, 0, 0.52, -70)
 			Preview.Position = UDim2.new(0, 0, 0.48, 4)
+			Footer.Size = UDim2.new(1, 0, 0, 60)
+			Footer.Position = UDim2.new(0, 0, 1, -60)
 		else
-			local FormWidth = math.clamp(Config.FormWidthScale or 0.44, 0.32, 0.68)
+			local FormWidth = math.clamp(Config.FormWidthScale or 0.42, 0.32, 0.68)
 			Form.Size = UDim2.new(FormWidth, -6, 1, 0)
-			Preview.Size = UDim2.new(1 - FormWidth, -6, 1, 0)
+			Preview.Size = UDim2.new(1 - FormWidth, -6, 1, -66)
 			Preview.Position = UDim2.new(FormWidth, 6, 0, 0)
+			Footer.Size = UDim2.new(1 - FormWidth, -6, 0, 60)
+			Footer.Position = UDim2.new(FormWidth, 6, 1, -60)
 		end
 		RefreshHistoryCanvas(false)
 	end

@@ -11,6 +11,31 @@ local KeySystem = {} do
 	end
 
 	local PandaAuthV4Clients = {}
+	local function GetPandaAuthV4Client(Config)
+		local ServiceId = Config.ServiceId or Config.serviceId
+		if not ServiceId or ServiceId == "" then return nil end
+		if PandaAuthV4Clients[ServiceId] then return PandaAuthV4Clients[ServiceId] end
+
+		local FetchSuccess, Source = pcall(function()
+			return game:HttpGet(Config.LibraryUrl or "https://secure.pandauth.com/pv4/lib")
+		end)
+		if not FetchSuccess or not Source then return nil end
+		local CompileSuccess, Loader = pcall(loadstring, Source)
+		if not CompileSuccess or type(Loader) ~= "function" then return nil end
+		local LoadSuccess, PUSL = pcall(Loader)
+		if not LoadSuccess or type(PUSL) ~= "table" or type(PUSL.configure) ~= "function" or type(PUSL.validate) ~= "function" then return nil end
+		local ConfigureSuccess = pcall(function()
+			PUSL.configure({
+				serviceId = ServiceId,
+				debug = Config.Debug == true or Config.debug == true,
+				kickOnDetect = Config.KickOnDetect == true or Config.kickOnDetect == true,
+			})
+		end)
+		if not ConfigureSuccess then return nil end
+		PandaAuthV4Clients[ServiceId] = PUSL
+		return PUSL
+	end
+
 	local Presets = {
 		PandaAuth = function(Key, Config)
 			local Service = Config.Service or ""
@@ -30,34 +55,8 @@ local KeySystem = {} do
 		end,
 
 		PandaAuthV4 = function(Key, Config)
-			local ServiceId = Config.ServiceId or Config.serviceId
-			if not ServiceId or ServiceId == "" then return false end
-
-			local Client = PandaAuthV4Clients[ServiceId]
-			if not Client then
-				local FetchSuccess, Source = pcall(function()
-					return game:HttpGet(Config.LibraryUrl or "https://secure.pandauth.com/pv4/lib")
-				end)
-				if not FetchSuccess or not Source then return false end
-
-				local CompileSuccess, Loader = pcall(loadstring, Source)
-				if not CompileSuccess or type(Loader) ~= "function" then return false end
-				local LoadSuccess, PUSL = pcall(Loader)
-				if not LoadSuccess or type(PUSL) ~= "table" or type(PUSL.configure) ~= "function" or type(PUSL.validate) ~= "function" then
-					return false
-				end
-
-				local ConfigureSuccess = pcall(function()
-					PUSL.configure({
-						serviceId = ServiceId,
-						debug = Config.Debug == true or Config.debug == true,
-						kickOnDetect = Config.KickOnDetect == true or Config.kickOnDetect == true,
-					})
-				end)
-				if not ConfigureSuccess then return false end
-				Client = PUSL
-				PandaAuthV4Clients[ServiceId] = Client
-			end
+			local Client = GetPandaAuthV4Client(Config)
+			if not Client then return false end
 
 			local ValidateSuccess, Result = pcall(Client.validate, Key)
 			if not ValidateSuccess then return false end
@@ -202,14 +201,24 @@ local KeySystem = {} do
 		local SaveKey = Config.SaveKey
 		local SavePath = Config.SavePath or "fluent-key.txt"
 		local SavedKey = ""
+		local SessionStore
+		if getgenv then
+			local Environment = getgenv()
+			Environment.__FluentKeySessions = Environment.__FluentKeySessions or {}
+			SessionStore = Environment.__FluentKeySessions
+		end
 
 		if SaveKey then
-			local readfile = readfile or (io and io.read)
-			local isfile = isfile or function(path)
-				local success, _ = pcall(readfile, path)
-				return success
+			if SessionStore and SessionStore[SavePath] then
+				SavedKey = tostring(SessionStore[SavePath])
 			end
-			if isfile(SavePath) then
+			local CanRead = type(readfile) == "function"
+			local FileExists = true
+			if type(isfile) == "function" then
+				local CheckSuccess, Exists = pcall(isfile, SavePath)
+				FileExists = CheckSuccess and Exists == true
+			end
+			if SavedKey == "" and CanRead and FileExists then
 				local successRead, content = pcall(readfile, SavePath)
 				if successRead and content then
 					SavedKey = content:gsub("%s+", "")
@@ -499,8 +508,8 @@ local KeySystem = {} do
 					StatusLabel.Text = "Key verified successfully."
 					StatusLabel.TextColor3 = Color3.fromRGB(110, 220, 150)
 					if SaveKey then
-						local writefile = writefile or (io and io.write)
-						if writefile then
+						if SessionStore then SessionStore[SavePath] = Entered end
+						if type(writefile) == "function" then
 							pcall(writefile, SavePath, Entered)
 						end
 					end
@@ -589,9 +598,17 @@ local KeySystem = {} do
 	end)
 	
 	GetKeyButton.Activated:Connect(function()
-		if Config.GetKeyLink then
+		local KeyLink = Config.GetKeyLink
+		if not KeyLink and Config.Preset == "PandaAuthV4" then
+			local Client = GetPandaAuthV4Client(Config.PresetConfig or {})
+			if Client and type(Client.getKeyUrl) == "function" then
+				local LinkSuccess, GeneratedLink = pcall(Client.getKeyUrl)
+				if LinkSuccess then KeyLink = GeneratedLink end
+			end
+		end
+		if KeyLink then
 			if setclipboard then
-				setclipboard(Config.GetKeyLink)
+				setclipboard(KeyLink)
 				Library:Notify({
 					Title = "Key System",
 					Content = "Key link copied to clipboard!",

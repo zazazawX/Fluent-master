@@ -175,22 +175,24 @@ function Creator.UpdateTranslations()
 end
 
 function Creator.GetThemeProperty(Property)
+	local Library = require(Root)
 	if Property == "ElementPadding" then
-		return require(Root).CompactMode and UDim.new(0, 8) or UDim.new(0, 13)
+		return Library.CompactMode and UDim.new(0, 8) or UDim.new(0, 13)
 	elseif Property == "ElementTitleSize" then
-		return require(Root).CompactMode and 11 or 13
+		return Library.CompactMode and 11 or 13
 	elseif Property == "ElementDescSize" then
-		return require(Root).CompactMode and 10 or 12
+		return Library.CompactMode and 10 or 12
 	elseif Property == "TabFrameSize" then
-		return require(Root).CompactMode and UDim2.new(1, 0, 0, 28) or UDim2.new(1, 0, 0, 34)
+		return Library.CompactMode and UDim2.new(1, 0, 0, 28) or UDim2.new(1, 0, 0, 34)
 	end
 
-	if Property == "Accent" and require(Root).AccentColor then
-		return require(Root).AccentColor
+	if Property == "Accent" and Library.AccentColor then
+		return Library.AccentColor
 	end
 
-	if Themes[require(Root).Theme][Property] then
-		return Themes[require(Root).Theme][Property]
+	local Theme = Themes[Library.Theme] or Themes.Dark
+	if Theme[Property] ~= nil then
+		return Theme[Property]
 	end
 	return Themes["Dark"][Property]
 end

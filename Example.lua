@@ -323,9 +323,19 @@ if EnableKeySystem then
         --     return Key == "secret-demo-key"
         -- end,
         
-        -- Option D: Preset integration (Luaguard, PandaAuth, Keyguard)
-        -- Preset = "Luaguard",
-        -- PresetConfig = { Project = "MyProject" },
+		-- Option D: PandaAuth V4 (set the service ID from your main script)
+		-- Comment out the Key option above before enabling this preset.
+		-- Preset = "PandaAuthV4",
+		-- PresetConfig = {
+		--     ServiceId = "YOUR_SERVICE_ID",
+		--     Debug = false,
+		--     KickOnDetect = false,
+		--     Premium = false -- true requires a premium key
+		-- },
+
+		-- Other built-in presets: Luaguard, PandaAuth, Keyguard
+		-- Preset = "Luaguard",
+		-- PresetConfig = { Project = "MyProject" },
 
 		-- Option E: Try multiple API providers in order
 		-- Providers = {

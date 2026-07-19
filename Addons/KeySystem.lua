@@ -10,6 +10,7 @@ local KeySystem = {} do
 		self.Library = library
 	end
 
+	local PandaAuthV4Clients = {}
 	local Presets = {
 		PandaAuth = function(Key, Config)
 			local Service = Config.Service or ""
@@ -26,6 +27,46 @@ local KeySystem = {} do
 				end
 			end
 			return false
+		end,
+
+		PandaAuthV4 = function(Key, Config)
+			local ServiceId = Config.ServiceId or Config.serviceId
+			if not ServiceId or ServiceId == "" then return false end
+
+			local Client = PandaAuthV4Clients[ServiceId]
+			if not Client then
+				local FetchSuccess, Source = pcall(function()
+					return game:HttpGet(Config.LibraryUrl or "https://secure.pandauth.com/pv4/lib")
+				end)
+				if not FetchSuccess or not Source then return false end
+
+				local CompileSuccess, Loader = pcall(loadstring, Source)
+				if not CompileSuccess or type(Loader) ~= "function" then return false end
+				local LoadSuccess, PUSL = pcall(Loader)
+				if not LoadSuccess or type(PUSL) ~= "table" or type(PUSL.configure) ~= "function" or type(PUSL.validate) ~= "function" then
+					return false
+				end
+
+				local ConfigureSuccess = pcall(function()
+					PUSL.configure({
+						serviceId = ServiceId,
+						debug = Config.Debug == true or Config.debug == true,
+						kickOnDetect = Config.KickOnDetect == true or Config.kickOnDetect == true,
+					})
+				end)
+				if not ConfigureSuccess then return false end
+				Client = PUSL
+				PandaAuthV4Clients[ServiceId] = Client
+			end
+
+			local ValidateSuccess, Result = pcall(Client.validate, Key)
+			if not ValidateSuccess then return false end
+			if type(Result) == "boolean" then return Result end
+			if type(Result) ~= "table" or Result.success ~= true then return false end
+			if Config.Premium == true or Config.RequirePremium == true then
+				return Result.isPremium == true
+			end
+			return true
 		end,
 		
 		Luaguard = function(Key, Config)

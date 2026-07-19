@@ -45,7 +45,8 @@ Fluent must already be loaded because StandalonePanel reuses its theme, notifica
 | `InputTransparency` | `0.02` | Input background transparency. |
 | `InputBorderTransparency` | `0.35` | Input border transparency. |
 | `InputHeight` | `32` | Height of single-line Input and Number fields. |
-| `InputHorizontalInset` | `4` | Left/right inset inside the form column. |
+| `InputWidthScale` | `0.82` | Input/Number/Multiline width relative to the form column. |
+| `InputWidthOffset` | `0` | Additional pixel adjustment to input width. |
 | `PreviewTransparency` | `0.04` | Preview/history background transparency. |
 | `ShowHistory` | true | Initial visibility of the preview/history area. |
 | `HistoryButtonText` | `History` | Header toggle label beside the close button. |
@@ -67,6 +68,8 @@ Above 520 px the layout is a left form and right preview. Below 520 px it stacks
 Every field requires a unique `Id`.
 
 Common optional fields: `Title`, `Description`, `Icon`, `Default`, `OnChanged(value, controller)`, `Required`, `Min`, `Max`, `Pattern`, and `Validator`.
+
+Input, Number, and Multiline fields may override the global width with `WidthScale` and `WidthOffset`.
 
 ### Input
 

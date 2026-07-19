@@ -316,9 +316,10 @@ function StandalonePanel:CreatePanel(Config)
 	local function AddInput(Field)
 		AddLabel(Field)
 		local Multiline = Field.Type == "Multiline" or Field.Multiline == true
-		local HorizontalInset = Config.InputHorizontalInset or 4
+		local InputWidthScale = Field.WidthScale or Config.InputWidthScale or 0.82
+		local InputWidthOffset = Field.WidthOffset or Config.InputWidthOffset or 0
 		local Holder = New("Frame", {
-			Size = UDim2.new(1, -(HorizontalInset * 2), 0, Multiline and (Field.Height or 82) or (Config.InputHeight or 32)),
+			Size = UDim2.new(InputWidthScale, InputWidthOffset, 0, Multiline and (Field.Height or 82) or (Config.InputHeight or 32)),
 			BackgroundTransparency = Config.InputTransparency or 0.02,
 			ThemeTag = { BackgroundColor3 = "DialogInput" },
 			Parent = Form,

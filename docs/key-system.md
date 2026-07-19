@@ -14,7 +14,7 @@ KeySystem:SetLibrary(Fluent)
 
 ## `KeySystem:CreateKeySystem(config)`
 
-Creates a responsive verification overlay. It returns no public controller; the UI owns its lifecycle.
+Creates a responsive verification overlay. The dark overlay covers the full viewport, including the CoreGui inset area, while the key card remains centered and size-constrained. It returns no public controller; the UI owns its lifecycle.
 
 ### General config
 

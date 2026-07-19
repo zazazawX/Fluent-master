@@ -333,6 +333,15 @@ if EnableKeySystem then
 		--     Premium = false -- true requires a premium key
 		-- },
 
+		-- Legacy direct REST integration (PandaAuth V2)
+		-- Preset = "PandaAuthV2",
+		-- PresetConfig = {
+		--     ServiceId = "YOUR_SERVICE_ID",
+		--     Premium = false,
+		--     BaseURL = "https://api.pandauth.com/api/v1",
+		--     GetKeyBaseUrl = "https://ads.pandauth.com"
+		-- },
+
 		-- Other built-in presets: Luaguard, PandaAuth, Keyguard
 		-- Preset = "Luaguard",
 		-- PresetConfig = { Project = "MyProject" },

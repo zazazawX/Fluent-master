@@ -53,7 +53,7 @@ do
     Tabs.Main:AddButton({
         Title = "Button",
         Description = "Very important button",
-        CommandId = "open-example-dialog", -- This button is now searchable with Ctrl+K
+        CommandId = "open-example-dialog", -- Searchable when the Command Palette is opened
         CommandKeywords = { "dialog", "example" },
         Callback = function()
             Window:Dialog({
@@ -106,8 +106,8 @@ do
         end
     })
 
-    -- Desktop: press Ctrl+K. Mobile: tap the Find button.
-    -- Fluent:OpenCommandPalette() can also open it from your own button.
+    -- Open it from your own button with Fluent:OpenCommandPalette().
+    -- Mobile users can also tap the Find button.
 
 
     

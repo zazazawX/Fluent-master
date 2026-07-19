@@ -10,7 +10,7 @@
 - Reduced-motion mode and theme contrast reports
 - Versioned configuration files with migrations
 - Strict Luau public API types
-- Searchable Command Palette (Ctrl+K on desktop, Find on mobile)
+- Searchable Command Palette (public API on desktop, Find on mobile)
 - Callback Error Boundary with Retry, Disable, and Copy error actions
 
 ## Installation
@@ -54,7 +54,6 @@ Keyboard and gamepad shortcuts:
 - M or gamepad X: toggle the mobile navigation drawer
 - Escape or gamepad B: close the active overlay
 - Arrow keys or D-pad: adjust a focused slider
-- Ctrl+K: search actions, buttons registered with `CommandId`, and toggles
 
 ## Command Palette and callback recovery
 

@@ -463,8 +463,13 @@ local KeySystem = {} do
 			UpdateMaskedText()
 		end)
 		CloseButton.Activated:Connect(function()
-			Overlay.Visible = false
-			ReopenButton.Visible = true
+			if Config.ShowReopenButton == true then
+				Overlay.Visible = false
+				ReopenButton.Visible = true
+			else
+				SpinnerTween:Cancel()
+				KeySystemGui:Destroy()
+			end
 		end)
 		ReopenButton.Activated:Connect(function()
 			Overlay.Visible = true

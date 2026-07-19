@@ -179,7 +179,7 @@ function StandalonePanel:CreatePanel(Config)
 		CanvasSize = UDim2.new(),
 		Parent = Body,
 	}, {
-		New("UIListLayout", { Padding = UDim.new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder }),
+		New("UIListLayout", { Padding = UDim.new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder, HorizontalAlignment = Enum.HorizontalAlignment.Center }),
 	})
 
 	local Preview = New("Frame", {
@@ -316,13 +316,14 @@ function StandalonePanel:CreatePanel(Config)
 	local function AddInput(Field)
 		AddLabel(Field)
 		local Multiline = Field.Type == "Multiline" or Field.Multiline == true
+		local HorizontalInset = Config.InputHorizontalInset or 4
 		local Holder = New("Frame", {
-			Size = UDim2.new(1, -4, 0, Multiline and (Field.Height or 82) or 36),
+			Size = UDim2.new(1, -(HorizontalInset * 2), 0, Multiline and (Field.Height or 82) or (Config.InputHeight or 32)),
 			BackgroundTransparency = Config.InputTransparency or 0.02,
 			ThemeTag = { BackgroundColor3 = "DialogInput" },
 			Parent = Form,
 		}, {
-			New("UICorner", { CornerRadius = UDim.new(0, 5) }),
+			New("UICorner", { CornerRadius = UDim.new(0, 4) }),
 			New("UIStroke", { Transparency = Config.InputBorderTransparency or 0.35, ThemeTag = { Color = "DialogInputLine" } }),
 		})
 		local Input = New("TextBox", {
@@ -335,7 +336,7 @@ function StandalonePanel:CreatePanel(Config)
 			MultiLine = Multiline,
 			TextWrapped = Multiline,
 			TextYAlignment = Multiline and Enum.TextYAlignment.Top or Enum.TextYAlignment.Center,
-			TextSize = 13,
+			TextSize = 12,
 			TextXAlignment = Enum.TextXAlignment.Left,
 			FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
 			ThemeTag = { TextColor3 = "Text", PlaceholderColor3 = "SubText" },

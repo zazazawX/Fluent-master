@@ -9,6 +9,7 @@
 3. [Elements](elements.md) — config, methods, values และ callbacks ของ element ทุกชนิด
 4. [Key System](key-system.md) — local keys, custom API และ provider presets ทุกแบบ
 5. [SaveManager and InterfaceManager](managers.md) — config persistence, migration, autoload และ interface settings
+6. [StandalonePanel](standalone-panel.md) — Fluent-themed focused forms that run separately from the main window
 
 ## Public files
 
@@ -18,6 +19,7 @@
 | `Addons/KeySystem.lua` | Key verification UI and providers |
 | `Addons/SaveManager.lua` | Save/load element values |
 | `Addons/InterfaceManager.lua` | Theme and interface preference UI |
+| `Addons/StandalonePanel.lua` | Separate focused task/form UI |
 | `Example.lua` | Complete working example |
 
 ## Supported themes

@@ -25,6 +25,7 @@ See [Example.lua](Example.lua) for the complete public API.
 
 Complete website-ready documentation is available in [docs/README.md](docs/README.md),
 including the core library, every element, Key System providers, SaveManager, and InterfaceManager.
+The addons also include a documented standalone task/form panel for focused secondary workflows.
 
 ## Component test place
 

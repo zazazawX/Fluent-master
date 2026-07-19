@@ -6,3 +6,4 @@
 - [Elements API](elements.md)
 - [Key System](key-system.md)
 - [SaveManager and InterfaceManager](managers.md)
+- [StandalonePanel](standalone-panel.md)

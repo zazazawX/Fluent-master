@@ -2,6 +2,8 @@
 
 `Addons/StandalonePanel.lua` creates a separate Fluent-themed task/form window without creating the main Fluent Window. It is intended for mail, trade, queue, generator, batch action, admin tool, or other focused workflows.
 
+The main header and floating History header support mouse and touch dragging. On narrow/mobile screens the History window automatically resizes and recenters inside the viewport.
+
 ## Load
 
 ```lua

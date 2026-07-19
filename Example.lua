@@ -154,6 +154,7 @@ do
         Values = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "thirteen", "fourteen"},
         Multi = false,
         Default = 1,
+        -- Clicking the selected item again clears it by default.
     })
 
     Dropdown:SetValue("four")

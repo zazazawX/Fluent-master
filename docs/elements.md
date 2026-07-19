@@ -122,7 +122,7 @@ local dropdown = Tab:AddDropdown("Weapon", {
 | `Values` | Array of allowed values; defaults to empty. |
 | `Default` | Single value/index, or multi-selection table. |
 | `Multi` | When true, Value is a map such as `{Sword = true}`. |
-| `AllowNull` | Allows the final selected item to be deselected. |
+| `AllowNull` | Defaults to true, so clicking the selected item again clears it. Set false only when a selection must always remain. |
 | `Search` | True always shows search; false disables it; nil enables it automatically when more than six values exist. |
 
 Methods:

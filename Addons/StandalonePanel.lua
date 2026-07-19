@@ -43,7 +43,7 @@ function StandalonePanel:CreatePanel(Config)
 		Logs = {},
 		Opened = true,
 		Submitting = false,
-		HistoryVisible = Config.ShowHistory ~= false,
+		HistoryVisible = Config.ShowHistory == true,
 	}
 
 	local Gui = New("ScreenGui", {
@@ -153,7 +153,7 @@ function StandalonePanel:CreatePanel(Config)
 	local HistoryButton = New("TextButton", {
 		Size = UDim2.fromOffset(74, 30),
 		Position = UDim2.new(1, -120, 0, 10),
-		BackgroundTransparency = Config.ShowHistory == false and 0.5 or 0.15,
+		BackgroundTransparency = Config.ShowHistory == true and 0.15 or 0.5,
 		Text = Config.HistoryButtonText or "History",
 		TextSize = 11,
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
@@ -206,17 +206,6 @@ function StandalonePanel:CreatePanel(Config)
 	})
 	local HistoryBaseText = Config.HistoryButtonText or "History"
 	HistoryButton.Text = HistoryBaseText .. " (0)"
-	local ClearHistoryButton = New("TextButton", {
-		Size = UDim2.fromOffset(48, 24), Position = UDim2.new(1, -108, 0, 9), BackgroundTransparency = 0.35,
-		Text = "Clear", TextSize = 10, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
-		ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "SubText" }, Parent = Preview,
-	}, { New("UICorner", { CornerRadius = UDim.new(0, 4) }) })
-	local CopyHistoryButton = New("TextButton", {
-		Size = UDim2.fromOffset(48, 24), Position = UDim2.new(1, -56, 0, 9), BackgroundTransparency = 0.35,
-		Text = "Copy", TextSize = 10, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
-		ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "SubText" }, Parent = Preview,
-	}, { New("UICorner", { CornerRadius = UDim.new(0, 4) }) })
-
 	local HistoryScroll = New("ScrollingFrame", {
 		Size = UDim2.new(1, -16, 1, -46),
 		Position = UDim2.fromOffset(8, 38),
@@ -254,6 +243,71 @@ function StandalonePanel:CreatePanel(Config)
 	Creator.AddSignal(PreviewText:GetPropertyChangedSignal("AbsoluteSize"), function()
 		RefreshHistoryCanvas(false)
 	end, Gui)
+	local ItemScroll = New("ScrollingFrame", {
+		Size = HistoryScroll.Size, Position = HistoryScroll.Position, BackgroundTransparency = 1, Visible = false,
+		BorderSizePixel = 0, ScrollBarThickness = 3, CanvasSize = UDim2.new(), Parent = Preview,
+	}, { New("UIListLayout", { Padding = UDim.new(0, 5), SortOrder = Enum.SortOrder.LayoutOrder }) })
+	local ItemLayout = ItemScroll:FindFirstChildOfClass("UIListLayout")
+
+	-- History is a separate floating window. Preview remains available for item lists.
+	local HistoryPanel = New("Frame", {
+		Size = Config.HistorySize or UDim2.new(0.46, 0, 0.62, 0),
+		Position = Config.HistoryPosition or UDim2.fromScale(0.72, 0.5),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Visible = Controller.HistoryVisible,
+		ZIndex = 30,
+		ThemeTag = { BackgroundColor3 = "Dialog" },
+		Parent = Overlay,
+	}, {
+		New("UISizeConstraint", { MinSize = Vector2.new(320, 280), MaxSize = Vector2.new(430, 390) }),
+		New("UICorner", { CornerRadius = UDim.new(0, 8) }),
+		New("UIStroke", { Transparency = 0.4, ThemeTag = { Color = "DialogBorder" } }),
+	})
+	New("TextLabel", {
+		Size = UDim2.new(1, -54, 0, 46), Position = UDim2.fromOffset(16, 0), BackgroundTransparency = 1,
+		Text = Config.HistoryTitle or "History", TextSize = 14, TextXAlignment = Enum.TextXAlignment.Left, ZIndex = 31,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+		ThemeTag = { TextColor3 = "Text" }, Parent = HistoryPanel,
+	})
+	local HistoryCloseIcon = New("TextButton", {
+		Size = UDim2.fromOffset(34, 34), Position = UDim2.new(1, -42, 0, 6), BackgroundTransparency = 1,
+		Text = "X", TextSize = 12, ZIndex = 31, ThemeTag = { TextColor3 = "SubText" }, Parent = HistoryPanel,
+	})
+	New("Frame", { Size = UDim2.new(1, 0, 0, 1), Position = UDim2.fromOffset(0, 45), ZIndex = 31, ThemeTag = { BackgroundColor3 = "DialogHolderLine" }, Parent = HistoryPanel })
+	local HistoryList = New("ScrollingFrame", {
+		Size = UDim2.new(1, -24, 1, -116), Position = UDim2.fromOffset(12, 55), BackgroundTransparency = 1,
+		BorderSizePixel = 0, ScrollBarThickness = 3, CanvasSize = UDim2.new(), ZIndex = 31, Parent = HistoryPanel,
+	})
+	local HistoryText = New("TextLabel", {
+		Size = UDim2.new(1, -8, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, Position = UDim2.fromOffset(4, 0),
+		BackgroundTransparency = 1, Text = "", TextSize = 12, TextWrapped = true,
+		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top, ZIndex = 32,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), ThemeTag = { TextColor3 = "SubText" }, Parent = HistoryList,
+	})
+	local ClearHistoryButton = New("TextButton", {
+		Size = UDim2.new(0.5, -18, 0, 34), Position = UDim2.new(0, 12, 1, -46), BackgroundTransparency = 0,
+		Text = "Clear History", TextSize = 11, ZIndex = 31,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+		BackgroundColor3 = Color3.fromRGB(190, 35, 40), TextColor3 = Color3.new(1, 1, 1), Parent = HistoryPanel,
+	}, { New("UICorner", { CornerRadius = UDim.new(0, 5) }) })
+	local CopyHistoryButton = New("TextButton", {
+		Size = UDim2.fromOffset(48, 24), Position = UDim2.new(1, -98, 0, 11), BackgroundTransparency = 0.35,
+		Text = "Copy", TextSize = 10, ZIndex = 31, ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "SubText" }, Parent = HistoryPanel,
+	}, { New("UICorner", { CornerRadius = UDim.new(0, 4) }) })
+	local CloseHistoryButton = New("TextButton", {
+		Size = UDim2.new(0.5, -18, 0, 34), Position = UDim2.new(0.5, 6, 1, -46), BackgroundTransparency = 0,
+		Text = "Close", TextSize = 11, ZIndex = 31,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+		ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "Text" }, Parent = HistoryPanel,
+	}, { New("UICorner", { CornerRadius = UDim.new(0, 5) }) })
+	local function RefreshLogCanvas(ScrollToBottom)
+		task.defer(function()
+			if not HistoryList.Parent or not HistoryText.Parent then return end
+			local Height = math.max(HistoryText.AbsoluteSize.Y + 8, HistoryList.AbsoluteSize.Y)
+			HistoryList.CanvasSize = UDim2.fromOffset(0, Height)
+			if ScrollToBottom then HistoryList.CanvasPosition = Vector2.new(0, math.max(0, Height - HistoryList.AbsoluteSize.Y)) end
+		end)
+	end
 
 	local FormLayout = Form:FindFirstChildOfClass("UIListLayout")
 	local function RefreshCanvas()
@@ -579,6 +633,8 @@ function StandalonePanel:CreatePanel(Config)
 	end
 
 	function Controller:SetPreview(Text, Title)
+		ItemScroll.Visible = false
+		HistoryScroll.Visible = true
 		PreviewText.Text = tostring(Text or "")
 		if Title then PreviewTitle.Text = Title end
 		RefreshHistoryCanvas(true)
@@ -589,13 +645,43 @@ function StandalonePanel:CreatePanel(Config)
 		table.insert(self.Logs, Entry)
 		local Limit = Config.LogLimit or 30
 		while #self.Logs > Limit do table.remove(self.Logs, 1) end
-		self:SetPreview(table.concat(self.Logs, "\n"), Config.PreviewTitle or "History")
+		HistoryText.Text = table.concat(self.Logs, "\n\n")
+		RefreshLogCanvas(true)
 		HistoryButton.Text = HistoryBaseText .. " (" .. tostring(#self.Logs) .. ")"
+	end
+
+	function Controller:SetItems(Items, Title, OnChanged)
+		HistoryScroll.Visible = false
+		ItemScroll.Visible = true
+		if Title then PreviewTitle.Text = Title end
+		for _, Child in ipairs(ItemScroll:GetChildren()) do
+			if Child:IsA("TextButton") then Child:Destroy() end
+		end
+		for Index, Item in ipairs(Items or {}) do
+			local Data = type(Item) == "table" and Item or { Id = Item, Text = tostring(Item) }
+			local Selected = Data.Selected == true
+			local Button = New("TextButton", {
+				Size = UDim2.new(1, -4, 0, 32), BackgroundTransparency = Selected and 0.05 or 0.35,
+				Text = "  " .. tostring(Data.Text or Data.Name or Data.Id or Index), TextSize = 12,
+				TextXAlignment = Enum.TextXAlignment.Left, LayoutOrder = Index,
+				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+				ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = Selected and "Accent" or "Text" }, Parent = ItemScroll,
+			}, { New("UICorner", { CornerRadius = UDim.new(0, 5) }), New("UIStroke", { Transparency = Selected and 0.25 or 0.75, ThemeTag = { Color = Selected and "Accent" or "DialogButtonBorder" } }) })
+			Creator.AddSignal(Button.Activated, function()
+				Selected = not Selected
+				Data.Selected = Selected
+				Button.BackgroundTransparency = Selected and 0.05 or 0.35
+				Creator.OverrideTag(Button, { BackgroundColor3 = "DialogButton", TextColor3 = Selected and "Accent" or "Text" })
+				if OnChanged then Library:SafeCallback(OnChanged, Data, Selected, self) end
+			end, Gui)
+		end
+		task.defer(function() ItemScroll.CanvasSize = UDim2.fromOffset(0, ItemLayout.AbsoluteContentSize.Y + 6) end)
 	end
 
 	function Controller:ClearHistory()
 		table.clear(self.Logs)
-		self:SetPreview("", Config.PreviewTitle or "History")
+		HistoryText.Text = ""
+		RefreshLogCanvas(false)
 		HistoryButton.Text = HistoryBaseText .. " (0)"
 	end
 
@@ -694,6 +780,13 @@ function StandalonePanel:CreatePanel(Config)
 		local Success, Error = Controller:CopyHistory()
 		Library:Notify({ Title = Config.Title or "Standalone Panel", Content = Success and "History copied" or "Unable to copy history", SubContent = Success and nil or tostring(Error), Type = Success and "Success" or "Error", Duration = 3 })
 	end, Gui)
+	local function CloseHistory()
+		Controller.HistoryVisible = false
+		HistoryPanel.Visible = false
+		HistoryButton.BackgroundTransparency = 0.5
+	end
+	Creator.AddSignal(HistoryCloseIcon.Activated, CloseHistory, Gui)
+	Creator.AddSignal(CloseHistoryButton.Activated, CloseHistory, Gui)
 	Creator.AddSignal(Action.MouseEnter, function() if not Controller.Submitting then Action.BackgroundTransparency = 0.15 end end, Gui)
 	Creator.AddSignal(Action.MouseLeave, function() Action.BackgroundTransparency = Controller.Submitting and 0.45 or 0 end, Gui)
 	Creator.AddSignal(CloseButton.Activated, function()
@@ -703,7 +796,7 @@ function StandalonePanel:CreatePanel(Config)
 	Creator.AddSignal(HistoryButton.Activated, function()
 		Controller.HistoryVisible = not Controller.HistoryVisible
 		HistoryButton.BackgroundTransparency = Controller.HistoryVisible and 0.15 or 0.5
-		Controller:UpdateLayout()
+		HistoryPanel.Visible = Controller.HistoryVisible
 	end, Gui)
 
 	Creator.AddSignal(UserInputService.InputBegan, function(Input)
@@ -716,13 +809,8 @@ function StandalonePanel:CreatePanel(Config)
 		-- Keep the panel centered even when an executor reports a viewport resize.
 		Panel.AnchorPoint = Vector2.new(0.5, 0.5)
 		Panel.Position = UDim2.fromScale(0.5, 0.5)
-		Preview.Visible = self.HistoryVisible
-		if not self.HistoryVisible then
-			Form.Size = UDim2.new(1, 0, 1, -66)
-			Footer.Size = UDim2.new(1, 0, 0, 60)
-			Footer.Position = UDim2.new(0, 0, 1, -60)
-			return
-		end
+		Preview.Visible = true
+		HistoryPanel.Visible = self.HistoryVisible
 		if Panel.AbsoluteSize.X < (Config.StackBreakpoint or 430) then
 			Form.Size = UDim2.new(1, 0, 0.48, -4)
 			Preview.Size = UDim2.new(1, 0, 0.52, -70)

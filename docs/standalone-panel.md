@@ -50,7 +50,10 @@ Fluent must already be loaded because StandalonePanel reuses its theme, notifica
 | `FormWidthScale` | `0.42` | Width of the form column; History and its Action button use the remaining width beside it. Clamped from `0.32` to `0.68`. |
 | `StackBreakpoint` | `430` | Panel width below which Form and History stack vertically for narrow screens. |
 | `PreviewTransparency` | `0.04` | Preview/history background transparency. |
-| `ShowHistory` | true | Initial visibility of the preview/history area. |
+| `ShowHistory` | false | Opens the separate floating History window initially. |
+| `HistoryTitle` | `History` | Title of the floating History window. |
+| `HistorySize` | responsive | Optional `UDim2` size of the floating History window. |
+| `HistoryPosition` | right-center | Optional `UDim2` position of the floating History window. |
 | `HistoryButtonText` | `History` | Header toggle label beside the close button. |
 | `HistoryTimestamp` | true | Adds a timestamp to every AppendLog entry. |
 | `TimestampFormat` | `%H:%M:%S` | `os.date` format used by history. |
@@ -185,7 +188,8 @@ Validation runs before confirmation/submission. Every failure is displayed direc
 ## History tools
 
 - Header badge updates as `History (count)`.
-- On normal screens, History stays in a dedicated column beside the form, scrolls independently, and owns the Action button below it.
+- The main preview stays beside the form for item lists or other selectable data.
+- History opens as a separate floating window from the header button and does not replace the preview.
 - On screens narrower than `StackBreakpoint`, History moves below the form.
 - Entries receive timestamps by default.
 - Clear removes all entries.
@@ -199,11 +203,11 @@ Validation runs before confirmation/submission. Every failure is displayed direc
 | `Logs` | Current history lines. |
 | `Opened` | Current visible state. |
 | `Submitting` | Whether OnSubmit is running. |
-| `HistoryVisible` | Current preview/history visibility. The header History button toggles it. |
+| `HistoryVisible` | Current visibility of the floating History window. The header History button toggles it. |
 | `SetValue(id, value)` | Updates any supported field and its stored value. |
 | `SetMetric(value, title?)` | Updates top-right metric. |
-| `SetPreview(text, title?)` | Replaces preview text/title. |
-| `AppendLog(text)` | Adds a line, trims to LogLimit, and displays History. |
+| `SetPreview(text, title?)` | Replaces the main item-list/preview text and title. |
+| `AppendLog(text)` | Adds an entry only to the floating History window and trims it to LogLimit. |
 | `ClearHistory()` | Clears history and resets its badge. |
 | `CopyHistory()` | Returns `success, error?` after copying history. |
 | `SetFieldError(id, message?)` | Sets or clears an inline field error. |

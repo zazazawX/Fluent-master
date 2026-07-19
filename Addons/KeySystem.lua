@@ -11,6 +11,23 @@ local KeySystem = {} do
 	end
 
 	local PandaAuthV4Clients = {}
+	local function GetHardwareId(Config)
+		if Config.HWID then return tostring(Config.HWID) end
+		if type(Config.GetHWID) == "function" then
+			local Success, Value = pcall(Config.GetHWID)
+			if Success and Value then return tostring(Value) end
+		end
+		if type(gethwid) == "function" then
+			local Success, Value = pcall(gethwid)
+			if Success and Value then return tostring(Value) end
+		end
+		local Success, Value = pcall(function()
+			return game:GetService("RbxAnalyticsService"):GetClientId()
+		end)
+		if Success and Value then return tostring(Value):gsub("-", "") end
+		return tostring(LocalPlayer.UserId)
+	end
+
 	local function GetPandaAuthV4Client(Config)
 		local ServiceId = Config.ServiceId or Config.serviceId
 		if not ServiceId or ServiceId == "" then return nil end
@@ -52,6 +69,32 @@ local KeySystem = {} do
 				end
 			end
 			return false
+		end,
+
+		PandaAuthV2 = function(Key, Config)
+			local ServiceId = Config.ServiceId or Config.serviceId
+			if not ServiceId or ServiceId == "" then return false end
+			local Request = Config.Request or request or http_request or (syn and syn.request)
+			if type(Request) ~= "function" then return false end
+			local RequestSuccess, Response = pcall(Request, {
+				Url = (Config.BaseURL or "https://api.pandauth.com/api/v1") .. "/keys/validate",
+				Method = "POST",
+				Headers = { ["Content-Type"] = "application/json" },
+				Body = httpService:JSONEncode({
+					ServiceID = ServiceId,
+					HWID = GetHardwareId(Config),
+					Key = Key,
+				}),
+			})
+			if not RequestSuccess or not Response then return false end
+			local Body = Response.Body or Response.body
+			local DecodeSuccess, Result = pcall(function() return httpService:JSONDecode(Body) end)
+			if not DecodeSuccess or type(Result) ~= "table" then return false end
+			local Authenticated = Result.Authenticated_Status == "Success"
+			if Config.Premium == true or Config.RequirePremium == true then
+				return Authenticated and Result.Key_Premium == true
+			end
+			return Authenticated
 		end,
 
 		PandaAuthV4 = function(Key, Config)
@@ -608,6 +651,14 @@ local KeySystem = {} do
 					local GetKeyBaseUrl = PandaConfig.GetKeyBaseUrl or "https://ads.pandauth.com"
 					KeyLink = GeneratedLink:gsub("__PUSL_GETKEY_BASE__", GetKeyBaseUrl)
 				end
+			end
+		end
+		if not KeyLink and Config.Preset == "PandaAuthV2" then
+			local PandaConfig = Config.PresetConfig or {}
+			local ServiceId = PandaConfig.ServiceId or PandaConfig.serviceId
+			if ServiceId and ServiceId ~= "" then
+				local GetKeyBaseUrl = PandaConfig.GetKeyBaseUrl or "https://ads.pandauth.com"
+				KeyLink = GetKeyBaseUrl .. "/getkey/" .. httpService:UrlEncode(tostring(ServiceId)) .. "?hwid=" .. httpService:UrlEncode(GetHardwareId(PandaConfig))
 			end
 		end
 		if KeyLink then

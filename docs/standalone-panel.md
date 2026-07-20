@@ -23,6 +23,8 @@ Fluent must already be loaded because StandalonePanel reuses its theme, notifica
 | Config | Type/default | Description |
 | --- | --- | --- |
 | `Name` | `CoreXStandalonePanel` | ScreenGui name. |
+| `UseCoreGui` | true outside Studio | Set false for protected/Vault environments that require PlayerGui capability. |
+| `Parent` | automatic | Optional explicit ScreenGui parent; overrides UseCoreGui. |
 | `Title` | `Standalone Panel` | Header title. |
 | `Icon` | nil | Lucide icon name or image string beside Title. |
 | `Size` | responsive `UDim2` | Panel size, constrained between 320×360 and 760×520. |

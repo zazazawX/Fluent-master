@@ -200,13 +200,21 @@ end
 function Creator.UpdateTheme()
 	for Instance, Object in next, Creator.Registry do
 		for Property, ColorIdx in next, Object.Properties do
-			Instance[Property] = Creator.GetThemeProperty(ColorIdx)
+			local Success = pcall(function()
+				Instance[Property] = Creator.GetThemeProperty(ColorIdx)
+			end)
+			if not Success then
+				Creator.Registry[Instance] = nil
+				break
+			end
 		end
 	end
 
 	for _, Motors in next, Creator.TransparencyMotors do
 		for Motor in next, Motors do
-			Motor:setGoal(Flipper.Instant.new(Creator.GetThemeProperty("ElementTransparency")))
+			pcall(function()
+				Motor:setGoal(Flipper.Instant.new(Creator.GetThemeProperty("ElementTransparency")))
+			end)
 		end
 	end
 end
@@ -248,15 +256,20 @@ function Creator.AddThemeObject(Object, Properties)
 	}
 
 	Creator.Registry[Object] = Data
-	Data.DestroyingConnection = Object.Destroying:Connect(function()
-		Creator.Registry[Object] = nil
-		Creator.TransparencyMotors[Object] = nil
+	pcall(function()
+		Data.DestroyingConnection = Object.Destroying:Connect(function()
+			Creator.Registry[Object] = nil
+			Creator.TransparencyMotors[Object] = nil
+		end)
 	end)
 	Creator.UpdateTheme()
 	return Object
 end
 
 function Creator.OverrideTag(Object, Properties)
+	if not Creator.Registry[Object] then
+		return Creator.AddThemeObject(Object, Properties)
+	end
 	Creator.Registry[Object].Properties = Properties
 	Creator.UpdateTheme()
 end

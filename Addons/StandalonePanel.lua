@@ -46,6 +46,11 @@ function StandalonePanel:CreatePanel(Config)
 		HistoryVisible = Config.ShowHistory == true,
 	}
 
+	local GuiParent = Config.Parent
+	if not GuiParent then
+		GuiParent = Config.UseCoreGui == false and LocalPlayer.PlayerGui
+			or (RunService:IsStudio() and LocalPlayer.PlayerGui or game:GetService("CoreGui"))
+	end
 	local Gui = New("ScreenGui", {
 		Name = Config.Name or "CoreXStandalonePanel",
 		IgnoreGuiInset = true,
@@ -53,7 +58,7 @@ function StandalonePanel:CreatePanel(Config)
 		SafeAreaCompatibility = Enum.SafeAreaCompatibility.None,
 		ClipToDeviceSafeArea = false,
 		ResetOnSpawn = false,
-		Parent = RunService:IsStudio() and LocalPlayer.PlayerGui or game:GetService("CoreGui"),
+		Parent = GuiParent,
 	})
 	ProtectGui(Gui)
 

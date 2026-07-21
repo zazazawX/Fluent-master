@@ -239,6 +239,15 @@ function StandalonePanel:CreatePanel(Config)
 		CanvasSize = UDim2.new(),
 		Parent = Preview,
 	})
+	local ItemSetters = {}
+	local ItemDataStates = {}
+	local AllItemsSelected = false
+	local SelectAllButton = New("TextButton", {
+		Size = UDim2.fromOffset(78, 24), Position = UDim2.new(1, -88, 0, 9),
+		BackgroundTransparency = 0.35, Text = "Select All", TextSize = 10, Visible = false,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+		ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "Accent" }, Parent = Preview,
+	}, { New("UICorner", { CornerRadius = UDim.new(0, 4) }), New("UIStroke", { Transparency = 0.65, ThemeTag = { Color = "DialogButtonBorder" } }) })
 	Header.Active = true
 	MakeDraggable(Header, Panel)
 
@@ -666,6 +675,7 @@ function StandalonePanel:CreatePanel(Config)
 	function Controller:SetPreview(Text, Title)
 		ItemScroll.Visible = false
 		HistoryScroll.Visible = true
+		SelectAllButton.Visible = false
 		PreviewText.Text = tostring(Text or "")
 		if Title then PreviewTitle.Text = Title end
 		RefreshHistoryCanvas(true)
@@ -726,30 +736,56 @@ function StandalonePanel:CreatePanel(Config)
 	function Controller:SetItems(Items, Title, OnChanged)
 		HistoryScroll.Visible = false
 		ItemScroll.Visible = true
+		SelectAllButton.Visible = Config.ShowSelectAll ~= false
 		if Title then PreviewTitle.Text = Title end
+		table.clear(ItemSetters)
+		table.clear(ItemDataStates)
+		AllItemsSelected = #(Items or {}) > 0
 		for _, Child in ipairs(ItemScroll:GetChildren()) do
 			if Child:IsA("TextButton") then Child:Destroy() end
 		end
 		for Index, Item in ipairs(Items or {}) do
 			local Data = type(Item) == "table" and Item or { Id = Item, Text = tostring(Item) }
+			table.insert(ItemDataStates, Data)
 			local Selected = Data.Selected == true
+			if not Selected then AllItemsSelected = false end
+			local Stroke = New("UIStroke", { Transparency = Selected and 0.25 or 0.75, ThemeTag = { Color = Selected and "Accent" or "DialogButtonBorder" } })
 			local Button = New("TextButton", {
 				Size = UDim2.new(1, -4, 0, 32), BackgroundTransparency = Selected and 0.05 or 0.35,
 				Text = "  " .. tostring(Data.Text or Data.Name or Data.Id or Index), TextSize = 12,
 				TextXAlignment = Enum.TextXAlignment.Left, LayoutOrder = Index,
 				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
 				ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = Selected and "Accent" or "Text" }, Parent = ItemScroll,
-			}, { New("UICorner", { CornerRadius = UDim.new(0, 5) }), New("UIStroke", { Transparency = Selected and 0.25 or 0.75, ThemeTag = { Color = Selected and "Accent" or "DialogButtonBorder" } }) })
-			Creator.AddSignal(Button.Activated, function()
-				Selected = not Selected
+			}, { New("UICorner", { CornerRadius = UDim.new(0, 5) }), Stroke })
+			local function SetSelected(Value, FireCallback)
+				Selected = Value == true
 				Data.Selected = Selected
 				Button.BackgroundTransparency = Selected and 0.05 or 0.35
 				Creator.OverrideTag(Button, { BackgroundColor3 = "DialogButton", TextColor3 = Selected and "Accent" or "Text" })
-				if OnChanged then Library:SafeCallback(OnChanged, Data, Selected, self) end
+				Stroke.Transparency = Selected and 0.25 or 0.75
+				Creator.OverrideTag(Stroke, { Color = Selected and "Accent" or "DialogButtonBorder" })
+				if FireCallback and OnChanged then Library:SafeCallback(OnChanged, Data, Selected, self) end
+			end
+			table.insert(ItemSetters, SetSelected)
+			Creator.AddSignal(Button.Activated, function()
+				SetSelected(not Selected, true)
+				AllItemsSelected = true
+				for _, State in ipairs(ItemDataStates) do
+					if State.Selected ~= true then AllItemsSelected = false break end
+				end
+				SelectAllButton.Text = AllItemsSelected and "Clear All" or "Select All"
 			end, Gui)
 		end
+		SelectAllButton.Text = AllItemsSelected and "Clear All" or "Select All"
 		task.defer(function() ItemScroll.CanvasSize = UDim2.fromOffset(0, ItemLayout.AbsoluteContentSize.Y + 6) end)
 	end
+
+	Creator.AddSignal(SelectAllButton.Activated, function()
+		local NewState = not AllItemsSelected
+		AllItemsSelected = NewState
+		for _, SetSelected in ipairs(ItemSetters) do SetSelected(NewState, true) end
+		SelectAllButton.Text = NewState and "Clear All" or "Select All"
+	end, Gui)
 
 	function Controller:ClearHistory()
 		table.clear(self.Logs)

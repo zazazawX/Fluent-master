@@ -54,6 +54,7 @@ Fluent must already be loaded because StandalonePanel reuses its theme, notifica
 | `FormWidthScale` | `0.42` | Width of the form column; History and its Action button use the remaining width beside it. Clamped from `0.32` to `0.68`. |
 | `StackBreakpoint` | `430` | Panel width below which Form and History stack vertically for narrow screens. |
 | `PreviewTransparency` | `0.04` | Preview/history background transparency. |
+| `ShowSelectAll` | true | Shows the `Select All` / `Clear All` button when `SetItems` is active. |
 | `ShowHistory` | false | Opens the separate floating History window initially. |
 | `HistoryTitle` | `History` | Title of the floating History window. |
 | `HistorySize` | responsive | Optional `UDim2` size of the floating History window. |
@@ -211,6 +212,7 @@ Validation runs before confirmation/submission. Every failure is displayed direc
 | `SetValue(id, value)` | Updates any supported field and its stored value. |
 | `SetMetric(value, title?)` | Updates top-right metric. |
 | `SetPreview(text, title?)` | Replaces the main item-list/preview text and title. |
+| `SetItems(items, title?, onChanged?)` | Displays selectable item rows. The header button selects or clears every row and invokes `onChanged(item, selected, controller)` for each changed item. |
 | `AppendLog(text)` | Adds an entry only to the floating History window and trims it to LogLimit. |
 | `AppendHistory(data)` | Adds a structured History card. Supports `Time`, `User`/`Target`, `Success`, `Status`, and `Summary`/`Message`; successful cards are green and failed cards are red. |
 | `ClearHistory()` | Clears history and resets its badge. |

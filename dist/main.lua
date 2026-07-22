@@ -6863,7 +6863,6 @@ end)
 
 register("main", function()
 local script = create_mock_script("")
-local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
 local Root = script
@@ -6877,16 +6876,19 @@ local ThemeValidator = require(Root.ThemeValidator)
 
 local New = Creator.New
 
-local ProtectGui = protectgui or (syn and syn.protect_gui) or function() end
+local function ResolveGuiParent()
+	return LocalPlayer:WaitForChild("PlayerGui")
+end
+
+local GuiParent = ResolveGuiParent()
 local GUI = New("ScreenGui", {
 	Name = "Core X",
 	IgnoreGuiInset = false,
 	ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets,
 	SafeAreaCompatibility = Enum.SafeAreaCompatibility.None,
 	ClipToDeviceSafeArea = true,
-	Parent = RunService:IsStudio() and LocalPlayer.PlayerGui or game:GetService("CoreGui"),
+	Parent = GuiParent,
 })
-ProtectGui(GUI)
 
 local SafeArea = New("Frame", {
 	Name = "SafeArea",

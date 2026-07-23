@@ -848,7 +848,7 @@ function StandalonePanel:CreatePanel(Config)
 		SelectAllButton.Text = NewState and "Clear All" or "Select All"
 	end, Gui)
 
-	function Controller:ClearHistory()
+	function Controller:ClearHistory(Silent)
 		table.clear(self.Logs)
 		for _, Child in ipairs(HistoryList:GetChildren()) do
 			if Child:IsA("Frame") then Child:Destroy() end
@@ -857,7 +857,7 @@ function StandalonePanel:CreatePanel(Config)
 		HistoryText.Text = ""
 		RefreshLogCanvas(false)
 		HistoryButton.Text = HistoryBaseText .. " (0)"
-		if Config.OnClearHistory then Library:SafeCallback(Config.OnClearHistory, self) end
+		if not Silent and Config.OnClearHistory then Library:SafeCallback(Config.OnClearHistory, self) end
 	end
 
 	function Controller:CopyHistory()

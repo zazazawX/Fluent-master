@@ -5,6 +5,12 @@ local SaveManager = {} do
 	SaveManager.Ignore = {}
 	SaveManager.SchemaVersion = 2
 	SaveManager.Migrations = {}
+	SaveManager.OptionCategories = {}
+	SaveManager.Defaults = {}
+	SaveManager.Metadata = {
+		gameId = game.GameId,
+		placeId = game.PlaceId,
+	}
 
 	local function NormalizeConfigName(name)
 		if type(name) ~= "string" then
@@ -166,6 +172,281 @@ local SaveManager = {} do
 		},
 	}
 
+	local function CloneSerializable(value)
+		local encodeSuccess, encoded = pcall(httpService.JSONEncode, httpService, value)
+		if not encodeSuccess then
+			return nil
+		end
+		local decodeSuccess, cloned = pcall(httpService.JSONDecode, httpService, encoded)
+		return decodeSuccess and cloned or nil
+	end
+
+	local function NormalizeSelection(selection)
+		if selection == nil then
+			return nil
+		end
+
+		local normalized = {}
+		for key, value in next, selection do
+			if type(key) == "number" then
+				normalized[tostring(value)] = true
+			elseif value == true then
+				normalized[tostring(key)] = true
+			end
+		end
+		return normalized
+	end
+
+	function SaveManager:SetMetadata(metadata)
+		assert(type(metadata) == "table", "metadata must be a table")
+		for key, value in next, metadata do
+			self.Metadata[key] = value
+		end
+	end
+
+	function SaveManager:SetOptionCategory(index, category)
+		assert(type(index) == "string" and index ~= "", "option index must be a non-empty string")
+		assert(type(category) == "string" and category ~= "", "category must be a non-empty string")
+		self.OptionCategories[index] = category
+	end
+
+	function SaveManager:SetCategoryIndexes(category, indexes)
+		assert(type(category) == "string" and category ~= "", "category must be a non-empty string")
+		assert(type(indexes) == "table", "indexes must be a table")
+		for _, index in next, indexes do
+			self:SetOptionCategory(index, category)
+		end
+	end
+
+	function SaveManager:GetOptionCategory(index)
+		return self.OptionCategories[index]
+	end
+
+	function SaveManager:GetCategories()
+		local seen = {}
+		local categories = {}
+		for _, category in next, self.OptionCategories do
+			if not seen[category] then
+				seen[category] = true
+				table.insert(categories, category)
+			end
+		end
+		table.sort(categories)
+		return categories
+	end
+
+	function SaveManager:IsOptionIncluded(index, options)
+		if self.Ignore[index] then
+			return false
+		end
+
+		local categories = options and NormalizeSelection(options.categories)
+		if not categories then
+			return true
+		end
+
+		local category = self.OptionCategories[index]
+		return category ~= nil and categories[category] == true
+	end
+
+	function SaveManager:BuildData(options)
+		local data = {
+			version = self.SchemaVersion,
+			fluentVersion = self.Library and self.Library.Version or nil,
+			savedAt = os.time(),
+			metadata = CloneSerializable(self.Metadata) or {},
+			objects = {}
+		}
+
+		for idx, option in next, SaveManager.Options do
+			if not self.Parser[option.Type] then continue end
+			if not self:IsOptionIncluded(idx, options) then continue end
+
+			local parserSuccess, serialized = pcall(self.Parser[option.Type].Save, idx, option)
+			if not parserSuccess then
+				return nil, "failed to serialize option " .. tostring(idx)
+			end
+			serialized.category = self.OptionCategories[idx]
+			table.insert(data.objects, serialized)
+		end
+
+		return data
+	end
+
+	function SaveManager:EncodeData(data)
+		local success, encoded = pcall(httpService.JSONEncode, httpService, data)
+		if not success then
+			return nil, "failed to encode config"
+		end
+		return encoded
+	end
+
+	function SaveManager:DecodeData(content, options)
+		if type(content) ~= "string" or content:match("^%s*$") then
+			return nil, "invalid content string"
+		end
+
+		local success, decoded = pcall(httpService.JSONDecode, httpService, content)
+		if not success or type(decoded) ~= "table" then
+			return nil, "decode error"
+		end
+
+		local migrateSuccess, migrated = self:Migrate(decoded)
+		if not migrateSuccess then
+			return nil, migrated
+		end
+		decoded = migrated
+		if type(decoded.objects) ~= "table" then
+			return nil, "invalid config format"
+		end
+
+		local metadata = type(decoded.metadata) == "table" and decoded.metadata or {}
+		local strictGame = not options or options.strictGame ~= false
+		if strictGame and metadata.gameId and self.Metadata.gameId
+			and tonumber(metadata.gameId) ~= tonumber(self.Metadata.gameId) then
+			return nil, "config belongs to a different game"
+		end
+
+		if options and options.strictPlace and metadata.placeId and self.Metadata.placeId
+			and tonumber(metadata.placeId) ~= tonumber(self.Metadata.placeId) then
+			return nil, "config belongs to a different place"
+		end
+
+		if options and options.strictVersion and metadata.appVersion and self.Metadata.appVersion
+			and tostring(metadata.appVersion) ~= tostring(self.Metadata.appVersion) then
+			return nil, string.format(
+				"config app version %s does not match %s",
+				tostring(metadata.appVersion),
+				tostring(self.Metadata.appVersion)
+			)
+		end
+
+		return decoded
+	end
+
+	function SaveManager:CaptureDefaults()
+		self.Defaults = {}
+		for idx, option in next, self.Options or {} do
+			local parser = self.Parser[option.Type]
+			if parser then
+				local success, serialized = pcall(parser.Save, idx, option)
+				if success then
+					self.Defaults[idx] = CloneSerializable(serialized)
+				end
+			end
+		end
+	end
+
+	function SaveManager:Reset(options)
+		local resetCount = 0
+		for idx, data in next, self.Defaults do
+			if self:IsOptionIncluded(idx, options) then
+				local parser = self.Parser[data.type]
+				if parser then
+					local success = pcall(parser.Load, idx, data)
+					if success then
+						resetCount += 1
+					end
+				end
+			end
+		end
+		return true, resetCount
+	end
+
+	function SaveManager:PreviewImport(content, options)
+		local decoded, decodeError = self:DecodeData(content, options)
+		if not decoded then
+			return false, decodeError
+		end
+
+		local preview = {
+			mode = options and options.mode == "replace" and "replace" or "merge",
+			metadata = decoded.metadata or {},
+			changes = {},
+			skipped = {},
+		}
+		local incomingIndexes = {}
+		local function ComparableJSON(value)
+			local comparable = CloneSerializable(value)
+			if type(comparable) == "table" then
+				comparable.category = nil
+			end
+			return comparable and self:EncodeData(comparable) or nil
+		end
+
+		for _, incoming in next, decoded.objects do
+			local index = type(incoming) == "table" and incoming.idx or nil
+			if index then
+				incomingIndexes[index] = true
+			end
+			local currentOption = index and self.Options[index] or nil
+			local parser = type(incoming) == "table" and self.Parser[incoming.type] or nil
+			if index and currentOption and parser and self:IsOptionIncluded(index, options) then
+				local currentSuccess, current = pcall(self.Parser[currentOption.Type].Save, index, currentOption)
+				if currentSuccess then
+					local currentJSON = ComparableJSON(current)
+					local incomingJSON = ComparableJSON(incoming)
+					if currentJSON ~= incomingJSON then
+						table.insert(preview.changes, {
+							index = index,
+							type = incoming.type,
+							category = self.OptionCategories[index] or incoming.category,
+							current = current,
+							incoming = incoming,
+						})
+					end
+				end
+			else
+				table.insert(preview.skipped, index or "unknown")
+			end
+		end
+
+		if preview.mode == "replace" then
+			for index, default in next, self.Defaults do
+				local currentOption = self.Options[index]
+				if not incomingIndexes[index] and currentOption and self:IsOptionIncluded(index, options) then
+					local parser = self.Parser[currentOption.Type]
+					local success, current = false, nil
+					if parser then
+						success, current = pcall(parser.Save, index, currentOption)
+					end
+					if success and ComparableJSON(current) ~= ComparableJSON(default) then
+						table.insert(preview.changes, {
+							index = index,
+							type = default.type,
+							category = self.OptionCategories[index],
+							current = current,
+							incoming = default,
+							reset = true,
+						})
+					end
+				end
+			end
+		end
+
+		return true, preview
+	end
+
+	function SaveManager:ApplyData(decoded, options)
+		local mode = options and options.mode == "replace" and "replace" or "merge"
+		if mode == "replace" then
+			self:Reset(options)
+		end
+
+		local applied = 0
+		for _, option in next, decoded.objects do
+			if type(option) == "table" and self.Parser[option.type]
+				and self.Options[option.idx] and self:IsOptionIncluded(option.idx, options) then
+				local loadSuccess, loadError = pcall(self.Parser[option.type].Load, option.idx, option)
+				if not loadSuccess then
+					return false, "failed to load option " .. tostring(option.idx) .. ": " .. tostring(loadError)
+				end
+				applied += 1
+			end
+		end
+		return true, applied
+	end
+
 	function SaveManager:SetIgnoreIndexes(list)
 		for _, key in next, list do
 			self.Ignore[key] = true
@@ -192,27 +473,13 @@ local SaveManager = {} do
 			return false, normalizedName
 		end
 
-		local data = {
-			version = self.SchemaVersion,
-			fluentVersion = self.Library and self.Library.Version or nil,
-			savedAt = os.time(),
-			objects = {}
-		}
-
-		for idx, option in next, SaveManager.Options do
-			if not self.Parser[option.Type] then continue end
-			if self.Ignore[idx] then continue end
-
-			local parserSuccess, serialized = pcall(self.Parser[option.Type].Save, idx, option)
-			if not parserSuccess then
-				return false, "failed to serialize option " .. tostring(idx)
-			end
-			table.insert(data.objects, serialized)
-		end	
-
-		local success, encoded = pcall(httpService.JSONEncode, httpService, data)
-		if not success then
-			return false, "failed to encode data"
+		local data, buildError = self:BuildData()
+		if not data then
+			return false, buildError
+		end
+		local encoded, encodeError = self:EncodeData(data)
+		if not encoded then
+			return false, encodeError
 		end
 
 		local writeSuccess, writeError = pcall(writefile, fullPath, encoded)
@@ -274,65 +541,126 @@ local SaveManager = {} do
 		return true, normalizedName
 	end
 
-	function SaveManager:ExportString()
-		local data = {
-			version = self.SchemaVersion,
-			fluentVersion = self.Library and self.Library.Version or nil,
-			savedAt = os.time(),
-			objects = {}
-		}
-
-		for idx, option in next, SaveManager.Options do
-			if not self.Parser[option.Type] then continue end
-			if self.Ignore[idx] then continue end
-
-			local parserSuccess, serialized = pcall(self.Parser[option.Type].Save, idx, option)
-			if parserSuccess then
-				table.insert(data.objects, serialized)
-			end
-		end	
-
-		local success, encoded = pcall(httpService.JSONEncode, httpService, data)
-		if success then
-			return encoded
+	function SaveManager:ExportString(options)
+		local data, buildError = self:BuildData(options)
+		if not data then
+			return nil, buildError
 		end
-		return nil, "failed to encode config"
+		return self:EncodeData(data)
 	end
 
-	function SaveManager:ImportString(content)
-		if type(content) ~= "string" or content == "" then
-			return false, "invalid content string"
+	function SaveManager:ImportString(content, options)
+		local decoded, decodeError = self:DecodeData(content, options)
+		if not decoded then
+			return false, decodeError
+		end
+		return self:ApplyData(decoded, options)
+	end
+
+	function SaveManager:ExportFile(name, options)
+		local path, normalizedName = self:GetConfigPath(name)
+		if not path then
+			return false, normalizedName
 		end
 
-		local success, decoded = pcall(httpService.JSONDecode, httpService, content)
-		if not success then return false, "decode error" end
-		if type(decoded) ~= "table" then
-			return false, "invalid config format"
-		end
-		local migrateSuccess, migrated = self:Migrate(decoded)
-		if not migrateSuccess then
-			return false, migrated
-		end
-		decoded = migrated
-		if type(decoded.objects) ~= "table" then
-			return false, "invalid config format"
+		local content, exportError = self:ExportString(options)
+		if not content then
+			return false, exportError
 		end
 
-		for _, option in next, decoded.objects do
-			if type(option) == "table" and self.Parser[option.type] then
-				local parser = self.Parser[option.type]
-				local optionData = option
-				local optionIdx = option.idx
-				task.spawn(function()
-					local loadSuccess, loadError = pcall(parser.Load, optionIdx, optionData)
-					if not loadSuccess then
-						warn("Failed to load config option:", optionIdx, loadError)
-					end
-				end)
-			end
+		local success, writeError = pcall(writefile, path, content)
+		if not success then
+			return false, "failed to write export: " .. tostring(writeError)
+		end
+		return true, path
+	end
+
+	function SaveManager:ImportFile(name, options)
+		local path, normalizedName = self:GetConfigPath(name)
+		if not path then
+			return false, normalizedName
+		end
+		if not isfile(path) then
+			return false, "invalid file"
 		end
 
-		return true
+		local success, content = pcall(readfile, path)
+		if not success then
+			return false, "failed to read import: " .. tostring(content)
+		end
+		return self:ImportString(content, options)
+	end
+
+	function SaveManager:SetShareProvider(provider)
+		assert(type(provider) == "table", "share provider must be a table")
+		assert(type(provider.Upload) == "function", "share provider requires Upload(json)")
+		assert(type(provider.Download) == "function", "share provider requires Download(code)")
+		self.ShareProvider = provider
+	end
+
+	function SaveManager:CreateShareCode(options)
+		if not self.ShareProvider then
+			return false, "share provider is not configured"
+		end
+		local content, exportError = self:ExportString(options)
+		if not content then
+			return false, exportError
+		end
+		local success, code = pcall(self.ShareProvider.Upload, self.ShareProvider, content)
+		if not success or type(code) ~= "string" or code == "" then
+			return false, "share provider failed to create a code"
+		end
+		return true, code
+	end
+
+	function SaveManager:ImportShareCode(code, options)
+		if not self.ShareProvider then
+			return false, "share provider is not configured"
+		end
+		if type(code) ~= "string" or code == "" then
+			return false, "invalid share code"
+		end
+		local success, content = pcall(self.ShareProvider.Download, self.ShareProvider, code)
+		if not success or type(content) ~= "string" then
+			return false, "share provider failed to download the config"
+		end
+		return self:ImportString(content, options)
+	end
+
+	function SaveManager:SetCloudProvider(provider)
+		assert(type(provider) == "table", "cloud provider must be a table")
+		assert(type(provider.Save) == "function", "cloud provider requires Save(key, json)")
+		assert(type(provider.Load) == "function", "cloud provider requires Load(key)")
+		self.CloudProvider = provider
+	end
+
+	function SaveManager:SaveCloud(key, options)
+		if not self.CloudProvider then
+			return false, "cloud provider is not configured"
+		end
+		if type(key) ~= "string" or key == "" then
+			return false, "invalid cloud key"
+		end
+		local content, exportError = self:ExportString(options)
+		if not content then
+			return false, exportError
+		end
+		local success, result = pcall(self.CloudProvider.Save, self.CloudProvider, key, content)
+		return success and result ~= false, success and result or tostring(result)
+	end
+
+	function SaveManager:LoadCloud(key, options)
+		if not self.CloudProvider then
+			return false, "cloud provider is not configured"
+		end
+		if type(key) ~= "string" or key == "" then
+			return false, "invalid cloud key"
+		end
+		local success, content = pcall(self.CloudProvider.Load, self.CloudProvider, key)
+		if not success or type(content) ~= "string" then
+			return false, "cloud provider failed to load the config"
+		end
+		return self:ImportString(content, options)
 	end
 
 	function SaveManager:IgnoreThemeSettings()
@@ -384,7 +712,8 @@ local SaveManager = {} do
 
 	function SaveManager:SetLibrary(library)
 		self.Library = library
-        self.Options = library.Options
+		self.Options = library.Options
+		self:CaptureDefaults()
 	end
 
 	function SaveManager:SetAutoloadConfig(name)
@@ -461,8 +790,21 @@ local SaveManager = {} do
 
 	function SaveManager:BuildConfigSection(tab)
 		assert(self.Library, "Must set SaveManager.Library")
+		self:CaptureDefaults()
 
 		local section = tab:AddSection("ConfigSection")
+		local function GetTransferOptions()
+			local selectedCategories = SaveManager.Options.SaveManager_CategoryList.Value
+			if type(selectedCategories) == "table" and next(selectedCategories) == nil then
+				selectedCategories = nil
+			end
+			local selectedMode = SaveManager.Options.SaveManager_ImportMode.Value
+			return {
+				categories = selectedCategories,
+				mode = type(selectedMode) == "string" and selectedMode:lower() or "merge",
+				strictGame = true,
+			}
+		end
 
 		section:AddInput("SaveManager_ConfigName",    { Title = "ConfigName" })
 		section:AddDropdown("SaveManager_ConfigList", { Title = "ConfigList", Values = self:RefreshConfigList(), AllowNull = true })
@@ -470,6 +812,22 @@ local SaveManager = {} do
 			Title = "ImportJSON",
 			Description = "ImportJSONDesc",
 			Placeholder = '{"version":2,"objects":[]}',
+		})
+		section:AddInput("SaveManager_TransferFile", {
+			Title = "TransferFile",
+			Placeholder = "shared-config",
+		})
+		section:AddDropdown("SaveManager_CategoryList", {
+			Title = "ExportCategories",
+			Description = "ExportCategoriesDesc",
+			Values = self:GetCategories(),
+			Multi = true,
+			Default = {},
+		})
+		section:AddDropdown("SaveManager_ImportMode", {
+			Title = "ImportMode",
+			Values = { "Merge", "Replace" },
+			Default = "Merge",
 		})
 
 		section:AddButton({
@@ -550,7 +908,7 @@ local SaveManager = {} do
 		end})
 
 		section:AddButton({Title = "ExportJSON", Callback = function()
-			local content, exportError = self:ExportString()
+			local content, exportError = self:ExportString(GetTransferOptions())
 			if not content then
 				return self.Library:Notify({
 					Title = "Interface",
@@ -590,7 +948,7 @@ local SaveManager = {} do
 
 		section:AddButton({Title = "ImportJSONButton", Callback = function()
 			local content = SaveManager.Options.SaveManager_ImportJSON.Value
-			local success, importError = self:ImportString(content)
+			local success, importError = self:ImportString(content, GetTransferOptions())
 			if not success then
 				return self.Library:Notify({
 					Title = "Interface",
@@ -604,6 +962,101 @@ local SaveManager = {} do
 				Title = "Interface",
 				Content = "Config loader",
 				SubContent = self.Library:Translate("ImportSuccess"),
+				Duration = 5
+			})
+		end})
+
+		section:AddButton({Title = "PreviewImport", Callback = function()
+			local content = SaveManager.Options.SaveManager_ImportJSON.Value
+			local transferOptions = GetTransferOptions()
+			local success, preview = self:PreviewImport(content, transferOptions)
+			if not success then
+				return self.Library:Notify({
+					Title = "Interface",
+					Content = "Config loader",
+					SubContent = self.Library:Translate("ImportFail", preview),
+					Duration = 7
+				})
+			end
+
+			local lines = {
+				self.Library:Translate("PreviewResult", #preview.changes, #preview.skipped),
+				"",
+			}
+			for index = 1, math.min(#preview.changes, 12) do
+				local change = preview.changes[index]
+				local current = self:EncodeData(change.current) or "?"
+				local incoming = self:EncodeData(change.incoming) or "?"
+				table.insert(lines, string.format(
+					"%s%s\n  %s\n  -> %s",
+					change.index,
+					change.reset and " (reset)" or "",
+					current:sub(1, 90),
+					incoming:sub(1, 90)
+				))
+			end
+			if #preview.changes > 12 then
+				table.insert(lines, string.format("\n+%d more", #preview.changes - 12))
+			end
+
+			self.Library.Window:Dialog({
+				Title = self.Library:Translate("PreviewImport"),
+				Content = table.concat(lines, "\n"),
+				Buttons = {
+					{
+						Title = self.Library:Translate("ApplyImport"),
+						Callback = function()
+							local imported, importError = self:ImportString(content, transferOptions)
+							self.Library:Notify({
+								Title = "Interface",
+								Content = "Config loader",
+								SubContent = imported
+									and self.Library:Translate("ImportSuccess")
+									or self.Library:Translate("ImportFail", importError),
+								Duration = 7
+							})
+						end,
+					},
+					{
+						Title = self.Library:Translate("CancelImport"),
+						Callback = function() end,
+					},
+				},
+			})
+		end})
+
+		section:AddButton({Title = "ExportJSONFile", Callback = function()
+			local name = SaveManager.Options.SaveManager_TransferFile.Value
+			local success, result = self:ExportFile(name, GetTransferOptions())
+			self.Library:Notify({
+				Title = "Interface",
+				Content = "Config loader",
+				SubContent = success
+					and self.Library:Translate("ExportFileSuccess", result)
+					or self.Library:Translate("ExportFail", result),
+				Duration = 7
+			})
+		end})
+
+		section:AddButton({Title = "ImportJSONFile", Callback = function()
+			local name = SaveManager.Options.SaveManager_TransferFile.Value
+			local success, result = self:ImportFile(name, GetTransferOptions())
+			self.Library:Notify({
+				Title = "Interface",
+				Content = "Config loader",
+				SubContent = success
+					and self.Library:Translate("ImportSuccess")
+					or self.Library:Translate("ImportFail", result),
+				Duration = 7
+			})
+		end})
+
+		section:AddButton({Title = "ResetConfig", Callback = function()
+			local _, count = self:Reset(GetTransferOptions())
+			self.Library:Notify({
+				Title = "Interface",
+				Content = "Config loader",
+				SubContent = self.Library:Translate("ResetSuccess", count),
 				Duration = 5
 			})
 		end})
@@ -644,6 +1097,9 @@ local SaveManager = {} do
 			"SaveManager_ConfigList",
 			"SaveManager_ConfigName",
 			"SaveManager_ImportJSON",
+			"SaveManager_TransferFile",
+			"SaveManager_CategoryList",
+			"SaveManager_ImportMode",
 		})
 	end
 

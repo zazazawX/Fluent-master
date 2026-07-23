@@ -284,6 +284,14 @@ end
 
 -- Hand the library over to our managers
 SaveManager:SetLibrary(Fluent)
+
+-- Portable config metadata and optional category groups.
+SaveManager:SetMetadata({
+    app = "FluentExample",
+    appVersion = "1.0.0",
+})
+-- SaveManager:SetCategoryIndexes("Farm", { "AutoFarm", "SelectedMob" })
+-- SaveManager:SetCategoryIndexes("Raid", { "AutoRaid", "RaidDifficulty" })
 InterfaceManager:SetLibrary(Fluent)
 
 -- Ignore keys that are used by ThemeManager.

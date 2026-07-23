@@ -61,6 +61,9 @@ Fluent must already be loaded because StandalonePanel reuses its theme, notifica
 | `HistoryPosition` | right-center | Optional `UDim2` position of the floating History window. |
 | `HistoryButtonText` | `History` | Header toggle label beside the close button. |
 | `HistoryTimestamp` | true | Adds a timestamp to every AppendLog entry. |
+| `OnClearHistory(controller)` | nil | Called after the History window is cleared; useful for deleting persisted history. |
+| `Confirm.Content` | string/function | Confirmation text, or `function(values, controller)` returning text or `{ Text, Image }` for a dynamic summary with a profile image. |
+| `Confirm.Height` | `170` | Confirmation card height; useful for itemized summaries. |
 | `TimestampFormat` | `%H:%M:%S` | `os.date` format used by history. |
 | `LogLimit` | `30` | Maximum lines kept by AppendLog. |
 | `CloseOnEscape` | true | Escape hides the panel. |

@@ -641,18 +641,24 @@ function StandalonePanel:CreatePanel(Config)
 		Size = UDim2.fromScale(1, 1), BackgroundColor3 = Color3.new(0, 0, 0), BackgroundTransparency = 0.35,
 		Visible = false, ZIndex = 50, Parent = Surface,
 	})
+	local ConfirmHeight = ConfirmConfig.Height or 170
 	local ConfirmCard = New("Frame", {
-		Size = UDim2.new(0.82, 0, 0, 170), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5),
+		Size = UDim2.new(0.86, 0, 0, ConfirmHeight), Position = UDim2.fromScale(0.5, 0.5), AnchorPoint = Vector2.new(0.5, 0.5),
 		ZIndex = 51, ThemeTag = { BackgroundColor3 = "Dialog" }, Parent = ConfirmOverlay,
-	}, { New("UISizeConstraint", { MinSize = Vector2.new(280, 170), MaxSize = Vector2.new(440, 190) }), New("UICorner", { CornerRadius = UDim.new(0, 7) }), New("UIStroke", { Transparency = 0.4, ThemeTag = { Color = "DialogBorder" } }) })
+	}, { New("UISizeConstraint", { MinSize = Vector2.new(280, math.min(170, ConfirmHeight)), MaxSize = Vector2.new(460, math.max(190, ConfirmHeight)) }), New("UICorner", { CornerRadius = UDim.new(0, 7) }), New("UIStroke", { Transparency = 0.4, ThemeTag = { Color = "DialogBorder" } }) })
 	New("TextLabel", {
 		Size = UDim2.new(1, -32, 0, 30), Position = UDim2.fromOffset(16, 14), BackgroundTransparency = 1, ZIndex = 52,
 		Text = ConfirmConfig.Title or "Confirm action", TextSize = 15, TextXAlignment = Enum.TextXAlignment.Left,
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold), ThemeTag = { TextColor3 = "Text" }, Parent = ConfirmCard,
 	})
-	New("TextLabel", {
-		Size = UDim2.new(1, -32, 0, 54), Position = UDim2.fromOffset(16, 48), BackgroundTransparency = 1, ZIndex = 52,
-		Text = ConfirmConfig.Content or "Are you sure you want to continue?", TextSize = 12, TextWrapped = true,
+	local ConfirmImage = New("ImageLabel", {
+		Size = UDim2.fromOffset(56, 56), Position = UDim2.fromOffset(16, 50),
+		BackgroundTransparency = 0.2, Visible = false, ZIndex = 52,
+		ThemeTag = { BackgroundColor3 = "DialogButton" }, Parent = ConfirmCard,
+	}, { New("UICorner", { CornerRadius = UDim.new(0, 7) }), New("UIStroke", { Transparency = 0.55, ThemeTag = { Color = "DialogButtonBorder" } }) })
+	local ConfirmContent = New("TextLabel", {
+		Size = UDim2.new(1, -32, 1, -112), Position = UDim2.fromOffset(16, 48), BackgroundTransparency = 1, ZIndex = 52,
+		Text = type(ConfirmConfig.Content) == "string" and ConfirmConfig.Content or "Are you sure you want to continue?", TextSize = 12, TextWrapped = true,
 		TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top,
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), ThemeTag = { TextColor3 = "SubText" }, Parent = ConfirmCard,
 	})
@@ -796,6 +802,7 @@ function StandalonePanel:CreatePanel(Config)
 		HistoryText.Text = ""
 		RefreshLogCanvas(false)
 		HistoryButton.Text = HistoryBaseText .. " (0)"
+		if Config.OnClearHistory then Library:SafeCallback(Config.OnClearHistory, self) end
 	end
 
 	function Controller:CopyHistory()
@@ -861,7 +868,25 @@ function StandalonePanel:CreatePanel(Config)
 			task.delay(1.2, function() if Action.Parent and not self.Submitting then Action.Text = Config.ActionText or "Submit" end end)
 			return false
 		end
-		if Config.Confirm and not SkipConfirm then ConfirmOverlay.Visible = true; return true end
+		if Config.Confirm and not SkipConfirm then
+			if type(ConfirmConfig.Content) == "function" then
+				local Success, Content = pcall(ConfirmConfig.Content, self.Values, self)
+				if Success and type(Content) == "table" then
+					ConfirmContent.Text = tostring(Content.Text or Content.Content or "")
+					ConfirmImage.Image = tostring(Content.Image or "")
+					ConfirmImage.Visible = ConfirmImage.Image ~= ""
+					ConfirmContent.Position = ConfirmImage.Visible and UDim2.fromOffset(84, 48) or UDim2.fromOffset(16, 48)
+					ConfirmContent.Size = ConfirmImage.Visible and UDim2.new(1, -100, 1, -112) or UDim2.new(1, -32, 1, -112)
+				else
+					ConfirmContent.Text = Success and tostring(Content or "") or "Unable to prepare confirmation details."
+					ConfirmImage.Visible = false
+					ConfirmContent.Position = UDim2.fromOffset(16, 48)
+					ConfirmContent.Size = UDim2.new(1, -32, 1, -112)
+				end
+			end
+			ConfirmOverlay.Visible = true
+			return true
+		end
 		self:PerformSubmit()
 		return true
 	end

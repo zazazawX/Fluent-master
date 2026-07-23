@@ -2212,14 +2212,20 @@ return function(Config)
 	local DefaultWindowSize = UDim2.fromOffset(580, 460)
 
 	local function GetViewportSize()
-		if Config.Parent and Config.Parent:IsA("GuiObject") then
-			local ParentSize = Config.Parent.AbsoluteSize
-			if ParentSize.X > 0 and ParentSize.Y > 0 then
-				return ParentSize
-			end
+		-- Some executors run this code without the Plugin capability. Calling
+		-- Instance:IsA on Config.Parent then raises before the window is created,
+		-- so probe AbsoluteSize safely instead.
+		local ParentSize
+		if Config.Parent then
+			pcall(function()
+				ParentSize = Config.Parent.AbsoluteSize
+			end)
+		end
+		if typeof(ParentSize) == "Vector2" and ParentSize.X > 0 and ParentSize.Y > 0 then
+			return ParentSize
 		end
 
-		local ViewportSize = Camera.ViewportSize
+		local ViewportSize = Camera and Camera.ViewportSize or Vector2.new(800, 600)
 		if ViewportSize.X <= 0 or ViewportSize.Y <= 0 then
 			return Vector2.new(800, 600)
 		end
@@ -3085,9 +3091,13 @@ return function(Config)
 		Window.SelectorPosMotor:setGoal(Instant(TabModule:GetCurrentTabPos()))
 	end, Window.Root)
 
-	Creator.AddSignal(Camera:GetPropertyChangedSignal("ViewportSize"), UpdateViewport, Window.Root)
-	if Config.Parent and Config.Parent:IsA("GuiObject") then
-		Creator.AddSignal(Config.Parent:GetPropertyChangedSignal("AbsoluteSize"), UpdateViewport, Window.Root)
+	if Camera then
+		Creator.AddSignal(Camera:GetPropertyChangedSignal("ViewportSize"), UpdateViewport, Window.Root)
+	end
+	if Config.Parent then
+		pcall(function()
+			Creator.AddSignal(Config.Parent:GetPropertyChangedSignal("AbsoluteSize"), UpdateViewport, Window.Root)
+		end)
 	end
 	Creator.AddSignal(Window.Root:GetPropertyChangedSignal("AbsoluteSize"), ApplyResponsiveLayout, Window.Root)
 	function Window:AddThemeCustomizer()
@@ -6853,7 +6863,6 @@ end)
 
 register("main", function()
 local script = create_mock_script("")
-local RunService = game:GetService("RunService")
 local LocalPlayer = game:GetService("Players").LocalPlayer
 
 local Root = script
@@ -6867,16 +6876,19 @@ local ThemeValidator = require(Root.ThemeValidator)
 
 local New = Creator.New
 
-local ProtectGui = protectgui or (syn and syn.protect_gui) or function() end
+local function ResolveGuiParent()
+	return LocalPlayer:WaitForChild("PlayerGui")
+end
+
+local GuiParent = ResolveGuiParent()
 local GUI = New("ScreenGui", {
 	Name = "Core X",
 	IgnoreGuiInset = false,
 	ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets,
 	SafeAreaCompatibility = Enum.SafeAreaCompatibility.None,
 	ClipToDeviceSafeArea = true,
-	Parent = RunService:IsStudio() and LocalPlayer.PlayerGui or game:GetService("CoreGui"),
+	Parent = GuiParent,
 })
-ProtectGui(GUI)
 
 local SafeArea = New("Frame", {
 	Name = "SafeArea",

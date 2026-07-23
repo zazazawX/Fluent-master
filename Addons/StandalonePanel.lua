@@ -767,7 +767,7 @@ function StandalonePanel:CreatePanel(Config)
 		local User = tostring(Data.User or Data.Target or "Unknown")
 		local Summary = tostring(Data.Summary or Data.Message or "No details")
 		local Status = Data.Status or (Success and "Sent successfully" or "Send failed")
-		local Color = Success and Color3.fromRGB(45, 190, 115) or Color3.fromRGB(225, 65, 70)
+		local Color = Success and Color3.fromRGB(55, 220, 135) or Color3.fromRGB(245, 80, 88)
 
 		local Entry = string.format("%s | %s | %s | %s", Time, Status, User, Summary)
 		table.insert(self.Logs, Entry)
@@ -778,26 +778,26 @@ function StandalonePanel:CreatePanel(Config)
 		if Config.CompactHistory then
 			local CompactText = tostring(Data.Text or Data.CompactText or string.format("%s → %s | %s", Status, User, Summary))
 			local Row = New("Frame", {
-				Size = UDim2.new(1, -6, 0, 34), BackgroundTransparency = 0.18,
+				Size = UDim2.new(1, -6, 0, 42), BackgroundTransparency = 0.06,
 				ThemeTag = { BackgroundColor3 = "DialogButton" }, Parent = HistoryList,
 			}, {
 				New("UICorner", { CornerRadius = UDim.new(0, 4) }),
 				New("UIStroke", { Transparency = 0.78, ThemeTag = { Color = "DialogButtonBorder" } }),
 			})
 			New("Frame", {
-				Size = UDim2.new(0, 3, 1, -8), Position = UDim2.fromOffset(0, 4),
+				Size = UDim2.new(0, 4, 1, -8), Position = UDim2.fromOffset(0, 4),
 				BackgroundColor3 = Color, BorderSizePixel = 0, Parent = Row,
 			}, { New("UICorner", { CornerRadius = UDim.new(0, 3) }) })
 			New("TextLabel", {
-				Size = UDim2.fromOffset(52, 34), Position = UDim2.fromOffset(10, 0),
-				BackgroundTransparency = 1, Text = Time, TextSize = 9,
+				Size = UDim2.fromOffset(62, 42), Position = UDim2.fromOffset(12, 0),
+				BackgroundTransparency = 1, Text = Time, TextSize = 11,
 				TextXAlignment = Enum.TextXAlignment.Left,
-				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
-				ThemeTag = { TextColor3 = "SubText" }, Parent = Row,
+				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
+				TextColor3 = Color3.fromRGB(190, 194, 204), Parent = Row,
 			})
 			New("TextLabel", {
-				Size = UDim2.new(1, -72, 1, 0), Position = UDim2.fromOffset(64, 0),
-				BackgroundTransparency = 1, Text = CompactText, TextSize = 10,
+				Size = UDim2.new(1, -88, 1, 0), Position = UDim2.fromOffset(78, 0),
+				BackgroundTransparency = 1, Text = CompactText, TextSize = 12,
 				TextTruncate = Enum.TextTruncate.AtEnd, TextXAlignment = Enum.TextXAlignment.Left,
 				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
 				TextColor3 = Color, Parent = Row,

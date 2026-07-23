@@ -702,18 +702,25 @@ function StandalonePanel:CreatePanel(Config)
 	})
 	local ConfirmItems = New("TextLabel", {
 		Size = UDim2.new(1, -24, 1, -120), Position = UDim2.fromOffset(12, 110),
-		BackgroundColor3 = Color3.fromRGB(12, 13, 17), BackgroundTransparency = 0.08,
-		Visible = false, ZIndex = 54, Text = "", TextSize = 10,
+		BackgroundColor3 = Color3.fromRGB(24, 25, 30), BackgroundTransparency = 0.04,
+		Visible = false, ZIndex = 54, Text = "", TextSize = 11,
 		TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top,
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), TextColor3 = Color3.fromRGB(205, 208, 218),
 		Parent = ConfirmBody,
 	}, {
-		New("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 9), PaddingRight = UDim.new(0, 9) }),
+		New("UIPadding", { PaddingTop = UDim.new(0, 28), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 11), PaddingRight = UDim.new(0, 11) }),
 		New("UICorner", { CornerRadius = UDim.new(0, 4) }),
-		New("UIStroke", { Transparency = 0.72, ThemeTag = { Color = "DialogButtonBorder" } }),
+		New("UIStroke", { Transparency = 0.5, ThemeTag = { Color = "DialogButtonBorder" } }),
+	})
+	local ConfirmItemsTitle = New("TextLabel", {
+		Size = UDim2.fromOffset(150, 20), Position = UDim2.fromOffset(23, 114),
+		BackgroundTransparency = 1, Visible = false, ZIndex = 55, Text = "SELECTED ITEMS", TextSize = 9,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+		TextColor3 = Color3.fromRGB(165, 169, 180), Parent = ConfirmBody,
 	})
 	local ConfirmTotal = New("TextLabel", {
-		Size = UDim2.fromOffset(150, 18), Position = UDim2.new(1, -162, 0, 112),
+		Size = UDim2.fromOffset(150, 20), Position = UDim2.new(1, -174, 0, 114),
 		BackgroundTransparency = 1, Visible = false, ZIndex = 55, Text = "", TextSize = 10,
 		TextXAlignment = Enum.TextXAlignment.Right,
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
@@ -983,6 +990,7 @@ function StandalonePanel:CreatePanel(Config)
 					ConfirmProfileMeta.Visible = IsTransaction
 					ConfirmSummary.Visible = IsTransaction
 					ConfirmItems.Visible = IsTransaction
+					ConfirmItemsTitle.Visible = IsTransaction
 					ConfirmTotal.Visible = IsTransaction
 					if IsTransaction then
 						Profile = Profile or {}
@@ -1011,6 +1019,7 @@ function StandalonePanel:CreatePanel(Config)
 					ConfirmProfileMeta.Visible = false
 					ConfirmSummary.Visible = false
 					ConfirmItems.Visible = false
+					ConfirmItemsTitle.Visible = false
 					ConfirmTotal.Visible = false
 					ConfirmBody.Position = UDim2.fromOffset(16, 48)
 					ConfirmBody.Size = UDim2.new(1, -32, 1, -116)

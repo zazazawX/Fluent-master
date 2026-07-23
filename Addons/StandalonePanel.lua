@@ -658,6 +658,16 @@ function StandalonePanel:CreatePanel(Config)
 		New("UICorner", { CornerRadius = UDim.new(0, 6) }),
 		New("UIStroke", { Transparency = 0.7, ThemeTag = { Color = "DialogButtonBorder" } }),
 	})
+	local ConfirmStatus = New("TextLabel", {
+		Size = UDim2.new(1, -32, 0, 24), Position = UDim2.fromOffset(16, 46),
+		BackgroundColor3 = Color3.fromRGB(55, 43, 16), BackgroundTransparency = 0.08,
+		Visible = false, ZIndex = 53, Text = "", TextSize = 11,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+		TextColor3 = Color3.fromRGB(250, 204, 72), Parent = ConfirmCard,
+	}, {
+		New("UICorner", { CornerRadius = UDim.new(0, 4) }),
+		New("UIStroke", { Color = Color3.fromRGB(180, 132, 24), Transparency = 0.2 }),
+	})
 	local ConfirmImage = New("ImageLabel", {
 		Size = UDim2.fromOffset(58, 58), Position = UDim2.fromOffset(12, 12),
 		BackgroundTransparency = 0.1, Visible = false, ZIndex = 53,
@@ -669,6 +679,38 @@ function StandalonePanel:CreatePanel(Config)
 		LineHeight = 1.12, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top,
 		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"), ThemeTag = { TextColor3 = "SubText" }, Parent = ConfirmBody,
 	})
+	local ConfirmProfileName = New("TextLabel", {
+		Size = UDim2.new(1, -98, 0, 20), Position = UDim2.fromOffset(82, 10),
+		BackgroundTransparency = 1, Visible = false, ZIndex = 54, Text = "", TextSize = 13,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+		ThemeTag = { TextColor3 = "Text" }, Parent = ConfirmBody,
+	})
+	local ConfirmProfileMeta = New("TextLabel", {
+		Size = UDim2.new(1, -98, 0, 38), Position = UDim2.fromOffset(82, 30),
+		BackgroundTransparency = 1, Visible = false, ZIndex = 54, Text = "", TextSize = 10,
+		TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+		ThemeTag = { TextColor3 = "SubText" }, Parent = ConfirmBody,
+	})
+	local ConfirmItems = New("TextLabel", {
+		Size = UDim2.new(1, -24, 1, -86), Position = UDim2.fromOffset(12, 76),
+		BackgroundTransparency = 0.35, Visible = false, ZIndex = 54, Text = "", TextSize = 10,
+		TextWrapped = true, TextXAlignment = Enum.TextXAlignment.Left, TextYAlignment = Enum.TextYAlignment.Top,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+		ThemeTag = { BackgroundColor3 = "Dialog", TextColor3 = "SubText" }, Parent = ConfirmBody,
+	}, {
+		New("UIPadding", { PaddingTop = UDim.new(0, 8), PaddingBottom = UDim.new(0, 8), PaddingLeft = UDim.new(0, 9), PaddingRight = UDim.new(0, 9) }),
+		New("UICorner", { CornerRadius = UDim.new(0, 4) }),
+		New("UIStroke", { Transparency = 0.72, ThemeTag = { Color = "DialogButtonBorder" } }),
+	})
+	local ConfirmTotal = New("TextLabel", {
+		Size = UDim2.fromOffset(150, 18), Position = UDim2.new(1, -162, 0, 80),
+		BackgroundTransparency = 1, Visible = false, ZIndex = 55, Text = "", TextSize = 10,
+		TextXAlignment = Enum.TextXAlignment.Right,
+		FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+		ThemeTag = { TextColor3 = "Text" }, Parent = ConfirmBody,
+	})
 	New("Frame", {
 		Size = UDim2.new(1, -32, 0, 1), Position = UDim2.new(0, 16, 1, -59), BorderSizePixel = 0,
 		ZIndex = 52, ThemeTag = { BackgroundColor3 = "DialogButtonBorder" }, Parent = ConfirmCard,
@@ -676,12 +718,14 @@ function StandalonePanel:CreatePanel(Config)
 	local ConfirmYes = New("TextButton", {
 		Size = UDim2.new(0.5, -20, 0, 36), Position = UDim2.new(0.5, 4, 1, -48), ZIndex = 53,
 		Text = ConfirmConfig.ConfirmText or "Confirm", TextSize = 12, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-		TextColor3 = Color3.fromRGB(255, 255, 255), ThemeTag = { BackgroundColor3 = "Accent" }, Parent = ConfirmCard,
+		TextColor3 = Color3.fromRGB(255, 255, 255),
+		BackgroundColor3 = ConfirmConfig.ConfirmColor or Color3.fromRGB(34, 197, 94), Parent = ConfirmCard,
 	}, { New("UICorner", { CornerRadius = UDim.new(0, 6) }), New("UIStroke", { Transparency = 0.25, ThemeTag = { Color = "Accent" } }) })
 	local ConfirmNo = New("TextButton", {
 		Size = UDim2.new(0.5, -20, 0, 36), Position = UDim2.new(0, 16, 1, -48), ZIndex = 53,
 		Text = ConfirmConfig.CancelText or "Cancel", TextSize = 12, FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Medium),
-		ThemeTag = { BackgroundColor3 = "DialogButton", TextColor3 = "Text" }, Parent = ConfirmCard,
+		BackgroundColor3 = ConfirmConfig.CancelColor or Color3.fromRGB(220, 55, 47),
+		TextColor3 = Color3.fromRGB(255, 255, 255), Parent = ConfirmCard,
 	}, { New("UICorner", { CornerRadius = UDim.new(0, 6) }), New("UIStroke", { Transparency = 0.45, ThemeTag = { Color = "DialogButtonBorder" } }) })
 
 	function Controller:SetMetric(Value, Title)
@@ -883,13 +927,45 @@ function StandalonePanel:CreatePanel(Config)
 			if type(ConfirmConfig.Content) == "function" then
 				local Success, Content = pcall(ConfirmConfig.Content, self.Values, self)
 				if Success and type(Content) == "table" then
-					ConfirmContent.Text = tostring(Content.Text or Content.Content or "")
-					ConfirmImage.Image = tostring(Content.Image or "")
-					ConfirmImage.Visible = ConfirmImage.Image ~= ""
-					ConfirmContent.Position = ConfirmImage.Visible and UDim2.fromOffset(82, 10) or UDim2.fromOffset(12, 10)
-					ConfirmContent.Size = ConfirmImage.Visible and UDim2.new(1, -94, 1, -20) or UDim2.new(1, -24, 1, -20)
+					local Profile = Content.Profile
+					local IsTransaction = type(Profile) == "table" or Content.Items ~= nil or Content.Status ~= nil
+					ConfirmStatus.Visible = IsTransaction
+					ConfirmStatus.Text = tostring(Content.Status or "⚠ PENDING CONFIRM")
+					ConfirmBody.Position = IsTransaction and UDim2.fromOffset(16, 76) or UDim2.fromOffset(16, 48)
+					ConfirmBody.Size = IsTransaction and UDim2.new(1, -32, 1, -144) or UDim2.new(1, -32, 1, -116)
+					ConfirmContent.Visible = not IsTransaction
+					ConfirmProfileName.Visible = IsTransaction
+					ConfirmProfileMeta.Visible = IsTransaction
+					ConfirmItems.Visible = IsTransaction
+					ConfirmTotal.Visible = IsTransaction
+					if IsTransaction then
+						Profile = Profile or {}
+						ConfirmImage.Image = tostring(Profile.Image or Content.Image or "")
+						ConfirmImage.Visible = ConfirmImage.Image ~= ""
+						ConfirmProfileName.Text = tostring(Profile.Name or Profile.DisplayName or Profile.Username or "Unknown")
+						local Username = tostring(Profile.Username or "")
+						local UserId = tostring(Profile.UserId or "")
+						ConfirmProfileMeta.Text = (Username ~= "" and ("@" .. Username) or "") .. (UserId ~= "" and ("\nID: " .. UserId) or "")
+						local Items = Content.Items
+						ConfirmItems.Text = type(Items) == "table" and table.concat(Items, "\n") or tostring(Items or "No items selected")
+						ConfirmTotal.Text = tostring(Content.Total or "")
+					else
+						ConfirmContent.Text = tostring(Content.Text or Content.Content or "")
+						ConfirmImage.Image = tostring(Content.Image or "")
+						ConfirmImage.Visible = ConfirmImage.Image ~= ""
+						ConfirmContent.Position = ConfirmImage.Visible and UDim2.fromOffset(82, 10) or UDim2.fromOffset(12, 10)
+						ConfirmContent.Size = ConfirmImage.Visible and UDim2.new(1, -94, 1, -20) or UDim2.new(1, -24, 1, -20)
+					end
 				else
 					ConfirmContent.Text = Success and tostring(Content or "") or "Unable to prepare confirmation details."
+					ConfirmContent.Visible = true
+					ConfirmStatus.Visible = false
+					ConfirmProfileName.Visible = false
+					ConfirmProfileMeta.Visible = false
+					ConfirmItems.Visible = false
+					ConfirmTotal.Visible = false
+					ConfirmBody.Position = UDim2.fromOffset(16, 48)
+					ConfirmBody.Size = UDim2.new(1, -32, 1, -116)
 					ConfirmImage.Visible = false
 					ConfirmContent.Position = UDim2.fromOffset(12, 10)
 					ConfirmContent.Size = UDim2.new(1, -24, 1, -20)

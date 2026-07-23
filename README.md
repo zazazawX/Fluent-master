@@ -98,6 +98,9 @@ SaveManager writes schema version 2. Existing unversioned files are migrated
 from version 1 and backed up before the migrated file is written. Custom future
 migrations can be registered with SaveManager:RegisterMigration().
 
+The generated configuration section can also copy the current settings as JSON
+and import that JSON on another device or executor.
+
 ## Credits
 
 - [richie0866/remote-spy](https://github.com/richie0866/remote-spy) — UI assets and original code

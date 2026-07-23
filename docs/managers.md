@@ -15,6 +15,10 @@ SaveManager:LoadAutoloadConfig()
 
 Default folder is `FluentSettings`; configs live in `<Folder>/settings/<name>.json`. Current schema is version 2.
 
+The generated config section also includes JSON transfer controls. **Copy configuration as JSON**
+exports the current supported option values to the clipboard. Paste that text into **Paste JSON to
+import**, then press **Import configuration from JSON** to restore it on another device or executor.
+
 ## SaveManager API
 
 | Method | Return | Description |
@@ -55,6 +59,23 @@ SaveManager.SchemaVersion = 3
 ```
 
 Every migration must return a table and advance `data.version`; gaps, backward versions and future configs are rejected.
+
+### Export and import JSON from code
+
+```lua
+local json, exportError = SaveManager:ExportString()
+if json then
+    setclipboard(json)
+end
+
+local success, importError = SaveManager:ImportString(jsonFromUser)
+if not success then
+    warn(importError)
+end
+```
+
+Imported JSON uses the same schema validation and migrations as saved files. Unknown element types
+and option IDs that do not exist in the current interface are ignored.
 
 ## InterfaceManager setup
 

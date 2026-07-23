@@ -466,6 +466,11 @@ local SaveManager = {} do
 
 		section:AddInput("SaveManager_ConfigName",    { Title = "ConfigName" })
 		section:AddDropdown("SaveManager_ConfigList", { Title = "ConfigList", Values = self:RefreshConfigList(), AllowNull = true })
+		section:AddInput("SaveManager_ImportJSON", {
+			Title = "ImportJSON",
+			Description = "ImportJSONDesc",
+			Placeholder = '{"version":2,"objects":[]}',
+		})
 
 		section:AddButton({
             Title = "CreateConfig",
@@ -544,6 +549,65 @@ local SaveManager = {} do
 			SaveManager.Options.SaveManager_ConfigList:SetValue(nil)
 		end})
 
+		section:AddButton({Title = "ExportJSON", Callback = function()
+			local content, exportError = self:ExportString()
+			if not content then
+				return self.Library:Notify({
+					Title = "Interface",
+					Content = "Config loader",
+					SubContent = self.Library:Translate("ExportFail", exportError),
+					Duration = 7
+				})
+			end
+
+			local setClipboard = setclipboard or toclipboard or (Clipboard and Clipboard.set)
+			if not setClipboard then
+				return self.Library:Notify({
+					Title = "Interface",
+					Content = "Config loader",
+					SubContent = self.Library:Translate("ClipboardUnavailable"),
+					Duration = 7
+				})
+			end
+
+			local copied, copyError = pcall(setClipboard, content)
+			if not copied then
+				return self.Library:Notify({
+					Title = "Interface",
+					Content = "Config loader",
+					SubContent = self.Library:Translate("ExportFail", tostring(copyError)),
+					Duration = 7
+				})
+			end
+
+			self.Library:Notify({
+				Title = "Interface",
+				Content = "Config loader",
+				SubContent = self.Library:Translate("ExportSuccess"),
+				Duration = 5
+			})
+		end})
+
+		section:AddButton({Title = "ImportJSONButton", Callback = function()
+			local content = SaveManager.Options.SaveManager_ImportJSON.Value
+			local success, importError = self:ImportString(content)
+			if not success then
+				return self.Library:Notify({
+					Title = "Interface",
+					Content = "Config loader",
+					SubContent = self.Library:Translate("ImportFail", importError),
+					Duration = 7
+				})
+			end
+
+			self.Library:Notify({
+				Title = "Interface",
+				Content = "Config loader",
+				SubContent = self.Library:Translate("ImportSuccess"),
+				Duration = 5
+			})
+		end})
+
 		local AutoloadButton
 		AutoloadButton = section:AddButton({Title = "SetAutoload", Description = self.Library:Translate("AutoloadDesc", self.Library:Translate("AutoloadNone")), Callback = function()
 			local name = SaveManager.Options.SaveManager_ConfigList.Value
@@ -576,7 +640,11 @@ local SaveManager = {} do
 			AutoloadButton:SetDesc(self.Library:Translate("AutoloadDesc", currentAutoload))
 		end)
 
-		SaveManager:SetIgnoreIndexes({ "SaveManager_ConfigList", "SaveManager_ConfigName" })
+		SaveManager:SetIgnoreIndexes({
+			"SaveManager_ConfigList",
+			"SaveManager_ConfigName",
+			"SaveManager_ImportJSON",
+		})
 	end
 
 	SaveManager:BuildFolderTree()

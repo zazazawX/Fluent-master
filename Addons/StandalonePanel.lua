@@ -775,6 +775,42 @@ function StandalonePanel:CreatePanel(Config)
 		while #self.Logs > Limit do table.remove(self.Logs, 1) end
 		HistoryText.Visible = false
 
+		if Config.CompactHistory then
+			local CompactText = tostring(Data.Text or Data.CompactText or string.format("%s → %s | %s", Status, User, Summary))
+			local Row = New("Frame", {
+				Size = UDim2.new(1, -6, 0, 34), BackgroundTransparency = 0.18,
+				ThemeTag = { BackgroundColor3 = "DialogButton" }, Parent = HistoryList,
+			}, {
+				New("UICorner", { CornerRadius = UDim.new(0, 4) }),
+				New("UIStroke", { Transparency = 0.78, ThemeTag = { Color = "DialogButtonBorder" } }),
+			})
+			New("Frame", {
+				Size = UDim2.new(0, 3, 1, -8), Position = UDim2.fromOffset(0, 4),
+				BackgroundColor3 = Color, BorderSizePixel = 0, Parent = Row,
+			}, { New("UICorner", { CornerRadius = UDim.new(0, 3) }) })
+			New("TextLabel", {
+				Size = UDim2.fromOffset(52, 34), Position = UDim2.fromOffset(10, 0),
+				BackgroundTransparency = 1, Text = Time, TextSize = 9,
+				TextXAlignment = Enum.TextXAlignment.Left,
+				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json"),
+				ThemeTag = { TextColor3 = "SubText" }, Parent = Row,
+			})
+			New("TextLabel", {
+				Size = UDim2.new(1, -72, 1, 0), Position = UDim2.fromOffset(64, 0),
+				BackgroundTransparency = 1, Text = CompactText, TextSize = 10,
+				TextTruncate = Enum.TextTruncate.AtEnd, TextXAlignment = Enum.TextXAlignment.Left,
+				FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+				TextColor3 = Color, Parent = Row,
+			})
+			task.defer(function()
+				local Height = HistoryLayout.AbsoluteContentSize.Y + 8
+				HistoryList.CanvasSize = UDim2.fromOffset(0, Height)
+				HistoryList.CanvasPosition = Vector2.new(0, math.max(0, Height - HistoryList.AbsoluteSize.Y))
+			end)
+			HistoryButton.Text = HistoryBaseText .. " (" .. tostring(#self.Logs) .. ")"
+			return
+		end
+
 		local Card = New("Frame", {
 			Size = UDim2.new(1, -6, 0, 62), BackgroundTransparency = 0.22,
 			ThemeTag = { BackgroundColor3 = "DialogButton" }, Parent = HistoryList,
